@@ -1,0 +1,11 @@
+{
+  "name": "classscheduler",
+  "version": "1.0.0",
+  "description": "Helps UCSD students determine if they will obtain their desired classes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shubham Kulkarni",
+  "license": "ISC"
+}
