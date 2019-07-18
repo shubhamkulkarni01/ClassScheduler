@@ -9,6 +9,9 @@ const qs = require("qs");
 const AWS = require('aws-sdk');
 
 const resources = require('./res.js');
+
+//console.log(resources.classList);
+
 const config = require('./config.js');
 
 // all query params are stored in res.js
@@ -99,7 +102,6 @@ app.get('/api/cache/:className', function(req, res){
       res.status(404).send('cache not found, try again later');
 });
 
-
 function findFromDb(courseName, res){
   var params = { 
     TableName: "classes", 
@@ -113,7 +115,6 @@ function findFromDb(courseName, res){
 }
 
 function addToDb(currCourse, res){
-
     var params = { 
       TableName: "classes", 
        Key: {
@@ -163,75 +164,6 @@ function addToDb(currCourse, res){
         else console.log('success');
       });
     });
-
-
-
-    //very inefficient way to do it, find a better way that doesn't require
-    //multiple independent db updates.
-    //classes loop: get each lecture
-    /*
-    dbo.collection("classes").findOne(query).then( dbCourse => { 
-      if(dbCourse){
-        for(var i = 0; i < currCourse.classes.length; i++){
-        //discussions loop, get each section
-          for(var j = 0; j < currCourse.classes[i].discussions.length; j++){
-            //check for 5 minute time difference
-            if(dbCourse.classes[i].discussions[j].enrollments[
-                  dbCourse.classes[i].discussions[j].enrollments.length-1]
-                  .time + 300000 < currCourse.classes[i].discussions[j]
-                  .enrollments[currCourse.classes[i].discussions[j]
-                  .enrollments.length-1].time || 
-                  //check for different seat count
-                  dbCourse.classes[i].discussions[j].enrollments[
-                  dbCourse.classes[i].discussions[j].enrollments.length-1]
-                  .remaining != currCourse.classes[i].discussions[j]
-                  .enrollments[currCourse.classes[i].discussions[j]
-                  .enrollments.length-1].remaining)
-              dbCourse.classes[i].discussions[j].enrollments.push(
-                  currCourse.classes[i].discussions[j].enrollments[
-                  currCourse.classes[i].discussions[j].enrollments.length-1]);
-          }
-        }
-        dbo.collection("classes").replaceOne(query, dbCourse);
-      }
-      else{
-        dbo.collection("classes").insertOne(currCourse);
-        dbCourse = currCourse;
-      }
-    });
-
-    /* 
-    this updateObject is still broken, it creates classes.0.instructor as an
-    object corresponding to numerical key 0.
-    var updateObject = { 
-      $set: {}, 
-      //$push: {} 
-    };
-    var updateOptions = { upsert: true, returnNewDocument: true };
-
-    for(var i = 0; i < currCourse.classes.length; i++){
-      //set lecture detail and instructor
-      updateObject.$set["classes.$["+i+"].lecture"] = 
-          currCourse.classes[i].lecture;
-      updateObject.$set["classes."+i+".instructor"] = 
-          currCourse.classes[i].instructor; 
-      //discussions loop, get each section
-      for(var j = 0; j < currCourse.classes[i].discussions.length; j++){
-        //set section detail (for insert)
-        /*updateObject.$set["classes."+i+".discussions."+j+".section"] = 
-            currCourse.classes[i].discussions[j].section; 
-        //add all enrollment infos (push to arrays)
-        updateObject.$push["classes."+i+".discussions."+j+".enrollments"] = 
-            currCourse.classes[i].discussions[j].enrollments[0]; 
-      }
-    }
-
-    console.log(updateObject);
-
-    return classes.findOneAndUpdate(query, updateObject, updateOptions)
-      .then(r => res.json(r.value)).catch(err => console.log(err));
-*/
-
 }
 
 // helper function to extract data from html string and compress in object form
@@ -334,4 +266,8 @@ function extractDataFromHtml(courseName, htmlString, res){
       }
   });
   return course;
+}
+
+function getClassData(){
+  
 }
