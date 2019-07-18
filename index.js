@@ -224,8 +224,7 @@ function extractDataFromHtml(courseName, htmlString){
         course.classes.push(lecture);
       } 
       //discussion row
-      else if(row.childNodes[21].childNodes[0].rawText.trim() !== "&nbsp;"){
-      //else if(row.childNodes[7].toString().indexOf("Discussion") != -1){
+      if(row.childNodes[21].childNodes[0].rawText.trim() !== "&nbsp;"){
         //get the remaining seats 
         var rem = row.childNodes[21].childNodes[0].rawText;
 
