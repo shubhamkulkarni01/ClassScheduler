@@ -10,13 +10,13 @@ const AWS = require('aws-sdk');
 
 const resources = require('./res.js');
 
-//console.log(resources.classList);
-
 const config = require('./config.js');
 
 // all query params are stored in res.js
 const url = resources.url;
 const header = resources.header;
+
+//getClassData();
 
 const key = config.key;
 const secret = config.secret;
@@ -29,12 +29,9 @@ AWS.config.update({
   });
 
 const docClient = new AWS.DynamoDB.DocumentClient();
-const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
-
-var mydb = null;
 
 var cache = {};
-var currTerm = "Fall 2019"; 
+var currTerm = resources.currTerm;
 
 //debug statement to track server init
 console.log("server init complete");
@@ -78,7 +75,7 @@ app.get('/api/class/:className', function(req, res) {
         console.log("processed data");
         console.log(new Date().getTime() - res.timeOfArrival);
         // add the current course info to database
-        addToDb(currCourse, res);
+        addToDb(currCourse);
         console.log("added to db");
         console.log(new Date().getTime() - res.timeOfArrival);
         
@@ -114,7 +111,7 @@ function findFromDb(courseName, res){
   docClient.get(params, (err, result) => res.json(result));
 }
 
-function addToDb(currCourse, res){
+function addToDb(currCourse){
     var params = { 
       TableName: "classes", 
        Key: {
@@ -167,7 +164,7 @@ function addToDb(currCourse, res){
 }
 
 // helper function to extract data from html string and compress in object form
-function extractDataFromHtml(courseName, htmlString, res){
+function extractDataFromHtml(courseName, htmlString){
   //parse html string
   var html = parser.parse(htmlString);
   var selected = html.querySelectorAll(".sectxt");
@@ -210,6 +207,9 @@ function extractDataFromHtml(courseName, htmlString, res){
   //console.log();
 
   var course = { name: courseName, term: "Fall 2019", classes: []};
+
+  /* does not work for classes with only lecture, needs to be reworked. 
+   * test cases can include CENG 100, WCWP 100. */
 
   selected.forEach(row => {
       //lecture row
@@ -269,5 +269,14 @@ function extractDataFromHtml(courseName, htmlString, res){
 }
 
 function getClassData(){
-  
+  var postRequest = resources.postRequest;
+  for(const key in resources.classList)
+    resources.classList[key].forEach(r => {
+      postRequest.courses = key + " " + r; 
+      //deal with non-letter class (CSE 140/140L problem)
+      if(/^[^A-z]$/i.test(postRequest.courses[postRequest.courses.length-1]))
+        postRequest.courses += "-A";
+      axios.post(url, qs.stringify(postRequest), header)
+      .then(response => /*addToDb(*/ console.log(extractDataFromHtml(key + " " + r, response.data)));
+    });
 }

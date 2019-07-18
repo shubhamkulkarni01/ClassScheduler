@@ -78,5 +78,7 @@ postRequest: { selectedTerm: 'FA19',
      _hideFullSec: 'on',
      _showPopup: 'on' }, 
 
-classList: JSON.parse(require('fs').readFileSync("classList.json"))
+classList: JSON.parse(require('fs').readFileSync("classList.json")),
+
+currTerm: 'Fall 2019'
 }
