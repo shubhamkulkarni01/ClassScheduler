@@ -1,55 +1,241 @@
 const express = require("express");
 const app = express();
 const path = require("path");
+
 const axios = require("axios");
 const parser = require("node-html-parser");
 const qs = require("qs");
 
+const AWS = require('aws-sdk');
+
 const resources = require('./res.js');
+const config = require('./config.js');
 
 // all query params are stored in res.js
 const url = resources.url;
 const header = resources.header;
 
+const key = config.key;
+const secret = config.secret;
+
+AWS.config.update({
+  "region": "us-east-2",
+  "endpoint": "https://dynamodb.us-east-2.amazonaws.com",
+  "accessKeyId": key,
+  "secretAccessKey": secret
+  });
+
+const docClient = new AWS.DynamoDB.DocumentClient();
+const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
+
+var mydb = null;
+
+var cache = {};
+var currTerm = "Fall 2019"; 
+
 //debug statement to track server init
-console.log("here");
+console.log("server init complete");
 
 //set express view engine
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
-app.get('/api/class/:className', function(req, res) {
-          
-    console.log("request arrived");
-    console.log(req.params.className);
-
-    var postRequest = resources.postRequest;
-    //deal with non-letter class (CSE 140/140L problem)
-    if(/^[^A-z]$/i.test(req.params.className[req.params.className.length-1]))
-      req.params.className += "-A";
-    postRequest.courses = req.params.className;
-
-    console.log("creating axios request");
-    axios.post(url, qs.stringify(postRequest), header)
-    .then(response => { 
-        console.log("axios request succeeded");
-        var currCourse = extractDataFromHtml(req.params.classname, response.data); 
-        //var dbCourse will originate from db, use another helper function.
-        var courseObject = { currentStatus: currCourse };
-        res.json(courseObject);
-        } )
-    .catch(err => { console.log("axios request failedd"); console.log(err) });
-
-}
-);
-
 //add the router
-app.listen(process.env.port || 3000);
+app.listen( process.env.PORT || 3000 );
 
 console.log("Running at Port 3000");
 
-// helper function to extract data from html string and compress in object form.
-function extractDataFromHtml(courseName, htmlString){
+app.get('/', (req, res) => { res.send('hewwo world'); });
+
+/* used to deal with get requests to the API specifying class name */
+app.get('/api/class/:className', function(req, res) {
+          
+    res.timeOfArrival = new Date().getTime();
+
+    console.log("GET request arrived: /api/class");
+    console.log("course name: " + req.params.className);
+
+    var postRequest = resources.postRequest;
+    //deal with non-letter class (CSE 140/140L problem)
+    postRequest.courses = req.params.className;
+    if(/^[^A-z]$/i.test(postRequest.courses[postRequest.courses.length-1]))
+      postRequest.courses += "-A";
+
+    findFromDb(req.params.className, res);
+    console.log("returning database object");
+    console.log(new Date().getTime() - res.timeOfArrival);
+
+    console.log("executing axios request for UCSD schedule of classes");
+    axios.post(url, qs.stringify(postRequest), header)
+    .then(response => { 
+        console.log("axios request succeeded");
+        console.log(new Date().getTime() - res.timeOfArrival);
+        var currCourse = extractDataFromHtml(req.params.className, 
+                                             response.data, res); 
+        console.log("processed data");
+        console.log(new Date().getTime() - res.timeOfArrival);
+        // add the current course info to database
+        addToDb(currCourse, res);
+        console.log("added to db");
+        console.log(new Date().getTime() - res.timeOfArrival);
+        
+        //cache the current course info for quick access for the /api/cache
+        //since we do not deliver the whole item to the user.
+        cache[currCourse.name] = currCourse;
+        /* console.log("cached course data");
+        console.log(cache); */
+    } )
+    .catch(err => { console.log("axios request failed"); console.log(err) });
+
+});
+
+app.get('/api/cache/:className', function(req, res){
+    console.log("GET request arrived: /api/class");
+    console.log("course name: " + req.params.className);
+    console.log(cache);
+    if(req.params.className in cache)
+      res.json(cache[req.params.className]);    
+    else
+      res.status(404).send('cache not found, try again later');
+});
+
+
+function findFromDb(courseName, res){
+  var params = { 
+    TableName: "classes", 
+    Key: {
+      "name": courseName, 
+      "term": currTerm 
+    }
+  };
+
+  docClient.get(params, (err, result) => res.json(result));
+}
+
+function addToDb(currCourse, res){
+
+    var params = { 
+      TableName: "classes", 
+       Key: {
+         "name": currCourse.name, 
+         "term": currTerm 
+       }
+    };
+
+    var object = {
+      TableName: 'classes',
+      Item: {}
+    }
+
+    docClient.get(params, (err, result) => {
+      if(err) throw err;
+
+      if(result.Item !== undefined){ 
+        var dbCourse = result.Item;
+        for(var i = 0; i < currCourse.classes.length; i++){
+        //discussions loop, get each section
+          for(var j = 0; j < currCourse.classes[i].discussions.length; j++){
+            //check for 5 minute time difference
+            if(dbCourse.classes[i].discussions[j].enrollments[
+                  dbCourse.classes[i].discussions[j].enrollments.length-1]
+                  .time + 300000 < currCourse.classes[i].discussions[j]
+                  .enrollments[currCourse.classes[i].discussions[j]
+                  .enrollments.length-1].time || 
+                  //check for different seat count
+                  dbCourse.classes[i].discussions[j].enrollments[
+                  dbCourse.classes[i].discussions[j].enrollments.length-1]
+                  .remaining != currCourse.classes[i].discussions[j]
+                  .enrollments[currCourse.classes[i].discussions[j]
+                  .enrollments.length-1].remaining)
+              dbCourse.classes[i].discussions[j].enrollments.push(
+                  currCourse.classes[i].discussions[j].enrollments[
+                  currCourse.classes[i].discussions[j].enrollments.length-1]);
+          }
+        }
+        object['Item'] = dbCourse;
+        
+      }
+      else
+        object.Item = currCourse;
+
+      docClient.put(object, (err, data) => { 
+        if(err) throw err; 
+        else console.log('success');
+      });
+    });
+
+
+
+    //very inefficient way to do it, find a better way that doesn't require
+    //multiple independent db updates.
+    //classes loop: get each lecture
+    /*
+    dbo.collection("classes").findOne(query).then( dbCourse => { 
+      if(dbCourse){
+        for(var i = 0; i < currCourse.classes.length; i++){
+        //discussions loop, get each section
+          for(var j = 0; j < currCourse.classes[i].discussions.length; j++){
+            //check for 5 minute time difference
+            if(dbCourse.classes[i].discussions[j].enrollments[
+                  dbCourse.classes[i].discussions[j].enrollments.length-1]
+                  .time + 300000 < currCourse.classes[i].discussions[j]
+                  .enrollments[currCourse.classes[i].discussions[j]
+                  .enrollments.length-1].time || 
+                  //check for different seat count
+                  dbCourse.classes[i].discussions[j].enrollments[
+                  dbCourse.classes[i].discussions[j].enrollments.length-1]
+                  .remaining != currCourse.classes[i].discussions[j]
+                  .enrollments[currCourse.classes[i].discussions[j]
+                  .enrollments.length-1].remaining)
+              dbCourse.classes[i].discussions[j].enrollments.push(
+                  currCourse.classes[i].discussions[j].enrollments[
+                  currCourse.classes[i].discussions[j].enrollments.length-1]);
+          }
+        }
+        dbo.collection("classes").replaceOne(query, dbCourse);
+      }
+      else{
+        dbo.collection("classes").insertOne(currCourse);
+        dbCourse = currCourse;
+      }
+    });
+
+    /* 
+    this updateObject is still broken, it creates classes.0.instructor as an
+    object corresponding to numerical key 0.
+    var updateObject = { 
+      $set: {}, 
+      //$push: {} 
+    };
+    var updateOptions = { upsert: true, returnNewDocument: true };
+
+    for(var i = 0; i < currCourse.classes.length; i++){
+      //set lecture detail and instructor
+      updateObject.$set["classes.$["+i+"].lecture"] = 
+          currCourse.classes[i].lecture;
+      updateObject.$set["classes."+i+".instructor"] = 
+          currCourse.classes[i].instructor; 
+      //discussions loop, get each section
+      for(var j = 0; j < currCourse.classes[i].discussions.length; j++){
+        //set section detail (for insert)
+        /*updateObject.$set["classes."+i+".discussions."+j+".section"] = 
+            currCourse.classes[i].discussions[j].section; 
+        //add all enrollment infos (push to arrays)
+        updateObject.$push["classes."+i+".discussions."+j+".enrollments"] = 
+            currCourse.classes[i].discussions[j].enrollments[0]; 
+      }
+    }
+
+    console.log(updateObject);
+
+    return classes.findOneAndUpdate(query, updateObject, updateOptions)
+      .then(r => res.json(r.value)).catch(err => console.log(err));
+*/
+
+}
+
+// helper function to extract data from html string and compress in object form
+function extractDataFromHtml(courseName, htmlString, res){
   //parse html string
   var html = parser.parse(htmlString);
   var selected = html.querySelectorAll(".sectxt");
@@ -106,7 +292,8 @@ function extractDataFromHtml(courseName, htmlString){
         course.classes.push(lecture);
       } 
       //discussion row
-      else if(row.childNodes[7].toString().indexOf("Discussion") != -1){
+      else if(row.childNodes[21].childNodes[0].rawText.trim() !== "&nbsp;"){
+      //else if(row.childNodes[7].toString().indexOf("Discussion") != -1){
         //get the remaining seats 
         var rem = row.childNodes[21].childNodes[0].rawText;
 
@@ -114,8 +301,10 @@ function extractDataFromHtml(courseName, htmlString){
         if(rem.indexOf("(") != -1)
         rem = "-" + rem.substring(rem.indexOf("(")+1, rem.indexOf(")"));
 
+        var t = new Date().getTime();
+
         //create enrollment object
-        var enrollment = { time: "insert time", 
+        var enrollment = { time: t, 
                            remaining: rem, 
                            total: row.childNodes[23].childNodes[0].rawText };
         

@@ -1,0 +1,87 @@
+
+function addToDb(db, currCourse, res){
+  return MongoClient.connect(connectionString, {useNewUrlParser: true}, 
+    function(err, db) {
+      console.log("connected to db"); 
+      console.log(new Date().getTime() - res.timeOfArrival);
+      if (err) throw err;
+
+      var dbo = db.db("mydb");
+      var classes = dbo.collection("classes");
+      var query = { name: currCourse.name, term: currCourse.term };
+      /* 
+      var updateObject = { 
+        $set: {}, 
+        //$push: {} 
+      };
+      var updateOptions = { upsert: true, returnNewDocument: true };
+
+      for(var i = 0; i < currCourse.classes.length; i++){
+        //set lecture detail and instructor
+        updateObject.$set["classes.$["+i+"].lecture"] = 
+            currCourse.classes[i].lecture;
+        updateObject.$set["classes."+i+".instructor"] = 
+            currCourse.classes[i].instructor; 
+        //discussions loop, get each section
+        for(var j = 0; j < currCourse.classes[i].discussions.length; j++){
+          //set section detail (for insert)
+          /*updateObject.$set["classes."+i+".discussions."+j+".section"] = 
+              currCourse.classes[i].discussions[j].section; 
+          //add all enrollment infos (push to arrays)
+          updateObject.$push["classes."+i+".discussions."+j+".enrollments"] = 
+              currCourse.classes[i].discussions[j].enrollments[0]; 
+        }
+      }
+
+console.log(updateObject);
+
+      return classes.findOneAndUpdate(query, updateObject, updateOptions)
+        .then(r => res.json(r.value)).catch(err => console.log(err));
+*/
+
+      //very inefficient way to do it, find a better way that doesn't require
+      //multiple independent db updates.
+      //classes loop: get each lecture
+      var t = new Date().getTime();
+      dbo.collection("classes").findOne(query).then( dbCourse => { 
+        if(dbCourse){
+          for(var i = 0; i < currCourse.classes.length; i++){
+          //discussions loop, get each section
+            for(var j = 0; j < currCourse.classes[i].discussions.length; j++){
+              //check for 5 minute time difference
+              if(dbCourse.classes[i].discussions[j].enrollments[
+                    dbCourse.classes[i].discussions[j].enrollments.length-1]
+                    .time + 300000 < currCourse.classes[i].discussions[j]
+                    .enrollments[currCourse.classes[i].discussions[j]
+                    .enrollments.length-1].time || 
+                    //check for different seat count
+                    dbCourse.classes[i].discussions[j].enrollments[
+                    dbCourse.classes[i].discussions[j].enrollments.length-1]
+                    .remaining != currCourse.classes[i].discussions[j]
+                    .enrollments[currCourse.classes[i].discussions[j]
+                    .enrollments.length-1].remaining)
+                dbCourse.classes[i].discussions[j].enrollments.push(
+                    currCourse.classes[i].discussions[j].enrollments[
+                    currCourse.classes[i].discussions[j].enrollments.length-1]);
+            }
+          }
+          dbo.collection("classes").replaceOne(query, dbCourse);
+        }
+        else{
+          dbo.collection("classes").insertOne(currCourse);
+          dbCourse = currCourse;
+        }
+        console.log("added to database");
+        console.log(new Date().getTime() - res.timeOfArrival);
+        res.json(dbCourse);
+      });
+
+      /* dbo.collection("classes").insertOne(currCourse, function(e, r){
+        dbo.collection("classes").find(query).toArray(function(err, res){ 
+          if(err) throw err;
+          console.log(res);
+          db.close();
+        }); 
+      });*/
+     }); 
+}
