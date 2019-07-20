@@ -84,7 +84,7 @@ app.get('/api/class/:className', function(req, res) {
         cache[currCourse.name] = currCourse;
         /* console.log("cached course data");
         console.log(cache); */
-    } )
+    })
     .catch(err => { console.log("axios request failed"); console.log(err) });
 
 });
@@ -142,7 +142,7 @@ function addToDb(currCourse){
                   //check for different seat count
                   dbCourse.classes[i].discussions[j].enrollments[
                   dbCourse.classes[i].discussions[j].enrollments.length-1]
-                  .remaining != currCourse.classes[i].discussions[j]
+                  .remaining !== currCourse.classes[i].discussions[j]
                   .enrollments[currCourse.classes[i].discussions[j]
                   .enrollments.length-1].remaining)
               dbCourse.classes[i].discussions[j].enrollments.push(
@@ -208,23 +208,36 @@ function extractDataFromHtml(courseName, htmlString){
 
   var course = { name: courseName, term: "Fall 2019", classes: []};
 
+  //selected[0].childNodes.forEach(item => console.log(item));
+
   /* does not work for classes with only lecture, needs to be reworked. 
    * test cases can include CENG 100, WCWP 100. */
 
   selected.forEach(row => {
+      console.log();
+      console.log();
+      console.log(row.childNodes[21]);
+      console.log(row);
+      console.log();
+      console.log();
       //lecture row
       if(row.childNodes[7].toString().indexOf("Lecture") != -1){
-        var lecture = { lecture: row.childNodes[9].childNodes[0].rawText.trim(), 
-                        instructor: row.childNodes[19].childNodes[1].rawText,
-                        discussions: [] }; 
+        var lecture = { 
+          lecture: row.childNodes[9].childNodes[0].rawText.trim(),
+          instructor: row.childNodes[19].childNodes[1].rawText,
+          discussions: [] 
+        }; 
+
         if(lecture.instructor == '')
           lecture.instructor = 'Staff';
         else
           lecture.instructor = lecture.instructor.trim();
+
         course.classes.push(lecture);
       } 
-      //discussion row
-      if(row.childNodes[21].childNodes[0].rawText.trim() !== "&nbsp;"){
+      //row with seat data
+      if(row.childNodes[21] !== undefined && 
+          row.childNodes[21].childNodes[0].rawText.trim() !== "&nbsp;"){
         //get the remaining seats 
         var rem = row.childNodes[21].childNodes[0].rawText;
 
@@ -241,14 +254,33 @@ function extractDataFromHtml(courseName, htmlString){
         
         var lectureIndex = course.classes.findIndex((c) => 
                 c.lecture[0] == row.childNodes[9].childNodes[0].rawText[0]);
-        var lecture = course.classes[lectureIndex];
+
+        //some classes do not have lectures (like AWP, freshmen seminar, etc)
+        if(lectureIndex === -1){
+          var l = { 
+            lecture: row.childNodes[9].childNodes[0].rawText.trim(),
+            instructor: row.childNodes[19].childNodes[1].rawText,
+            discussions: [] 
+          }; 
+
+          if(l.instructor == '')
+            l.instructor = 'Staff';
+          else
+            l.instructor = lecture.instructor.trim();
+          course.classes.push(l);
+        }
+
+        var lecture = course.classes[course.classes.length-1];
+
+        console.log(lecture);
+        console.log(course);
 
         //find relevant section using findIndex
         var index = lecture.discussions.findIndex((element) => 
             element.section === row.childNodes[9].childNodes[0].rawText.trim());
 
         //if index == -1, then create new section
-        if(index == -1)
+        if(index === -1)
           var section = { section: row.childNodes[9].childNodes[0].rawText
                                       .trim(),
                           enrollments: [] };
@@ -259,7 +291,7 @@ function extractDataFromHtml(courseName, htmlString){
         section.enrollments.push(enrollment);
 
         //add new discussion to list
-        if(index == -1)
+        if(index === -1)
           lecture.discussions.push(section);
 
       }
@@ -276,6 +308,12 @@ function getClassData(){
       if(/^[^A-z]$/i.test(postRequest.courses[postRequest.courses.length-1]))
         postRequest.courses += "-A";
       axios.post(url, qs.stringify(postRequest), header)
-      .then(response => /*addToDb(*/ console.log(extractDataFromHtml(key + " " + r, response.data)));
+      .then(response => {
+        /*addToDb(extractDataFromHtml(key + " " + r, response.data)); */ 
+        console.log(); 
+        console.log(key + " " + r); 
+        console.log(extractDataFromHtml(key + " " + r, response.data)); 
+        console.log(); 
+      }).catch(err => console.log( key + " " + r + ' failed \n' + err));
     });
 }
