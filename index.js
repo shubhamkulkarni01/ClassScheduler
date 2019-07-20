@@ -16,7 +16,7 @@ const config = require('./config.js');
 const url = resources.url;
 const header = resources.header;
 
-//getClassData();
+getClassData();
 
 const key = config.key;
 const secret = config.secret;
@@ -32,6 +32,8 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 
 var cache = {};
 var currTerm = resources.currTerm;
+
+var blacklist = [];
 
 //debug statement to track server init
 console.log("server init complete");
@@ -93,10 +95,13 @@ app.get('/api/cache/:className', function(req, res){
     console.log("GET request arrived: /api/class");
     console.log("course name: " + req.params.className);
     console.log(cache);
+    res.json(blacklist);
+    /*
     if(req.params.className in cache)
       res.json(cache[req.params.className]);    
     else
       res.status(404).send('cache not found, try again later');
+      */
 });
 
 function findFromDb(courseName, res){
@@ -214,12 +219,6 @@ function extractDataFromHtml(courseName, htmlString){
    * test cases can include CENG 100, WCWP 100. */
 
   selected.forEach(row => {
-      console.log();
-      console.log();
-      console.log(row.childNodes[21]);
-      console.log(row);
-      console.log();
-      console.log();
       //lecture row
       if(row.childNodes[7].toString().indexOf("Lecture") != -1){
         var lecture = { 
@@ -272,9 +271,6 @@ function extractDataFromHtml(courseName, htmlString){
 
         var lecture = course.classes[course.classes.length-1];
 
-        console.log(lecture);
-        console.log(course);
-
         //find relevant section using findIndex
         var index = lecture.discussions.findIndex((element) => 
             element.section === row.childNodes[9].childNodes[0].rawText.trim());
@@ -300,9 +296,12 @@ function extractDataFromHtml(courseName, htmlString){
 }
 
 function getClassData(){
+  console.log(resources.blacklist);
   var postRequest = resources.postRequest;
-  for(const key in resources.classList)
-    resources.classList[key].forEach(r => {
+  for(const key in resources.classList){
+    for(const r in resources.classList[key]){
+      if(resources.blacklist.includes(key+" "+r))
+        continue;
       postRequest.courses = key + " " + r; 
       //deal with non-letter class (CSE 140/140L problem)
       if(/^[^A-z]$/i.test(postRequest.courses[postRequest.courses.length-1]))
@@ -314,6 +313,10 @@ function getClassData(){
         console.log(key + " " + r); 
         console.log(extractDataFromHtml(key + " " + r, response.data)); 
         console.log(); 
-      }).catch(err => console.log( key + " " + r + ' failed \n' + err));
-    });
+      }).catch(err => { 
+        console.log( key + " " + r + ' failed \n' + err); 
+        blacklist.push(key+" "+r);
+      });
+    }
+  }
 }
