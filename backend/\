@@ -3,7 +3,6 @@ const app = express();
 const path = require("path");
 
 const axios = require("axios");
-const cors = require('cors');
 const parser = require("node-html-parser");
 const qs = require("qs");
 
@@ -40,7 +39,6 @@ var blacklist = [];
 console.log("server init complete");
 
 //set express view engine
-app.use(cors());
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
