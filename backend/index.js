@@ -103,6 +103,7 @@ app.get('/api/cache/:className', function(req, res){
 });
 
 function findFromDb(courseName, res){
+  /*
   var params = { 
     TableName: "classes", 
     Key: {
@@ -110,8 +111,21 @@ function findFromDb(courseName, res){
       "term": currTerm 
     }
   };
+  */
+  var params = { 
+    TableName: "classes", 
+    KeyConditionExpression: "#nm = :n",
+    ExpressionAttributeNames: {
+      "#nm": "name"
+    },
+    ExpressionAttributeValues: {
+      ":n": courseName, 
+    }
+  };
 
-  docClient.get(params, (err, result) => res.json(result));
+  console.log(params);
+
+  docClient.query(params, (err, result) => res.json(result.Items));
 }
 
 function addToDb(currCourse){
