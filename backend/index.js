@@ -17,7 +17,7 @@ const config = require('./config.js');
 const url = resources.url;
 const header = resources.header;
 
-//getClassData();
+getClassData();
 
 const key = config.key;
 const secret = config.secret;
@@ -153,7 +153,7 @@ function addToDb(currCourse){
             //check for 5 minute time difference
             if(dbCourse.classes[i].discussions[j].enrollments[
                   dbCourse.classes[i].discussions[j].enrollments.length-1]
-                  .time + 300000 < currCourse.classes[i].discussions[j]
+                  .time + 900000 < currCourse.classes[i].discussions[j]
                   .enrollments[currCourse.classes[i].discussions[j]
                   .enrollments.length-1].time || 
                   //check for different seat count
@@ -320,10 +320,10 @@ function getClassData(){
         postRequest.courses += "-A";
       axios.post(url, qs.stringify(postRequest), header)
       .then(response => {
-        /*addToDb(extractDataFromHtml(key + " " + r, response.data)); */ 
+        addToDb(extractDataFromHtml(key + " " + r, response.data));
         console.log(); 
-        console.log(key + " " + r); 
-        console.log(extractDataFromHtml(key + " " + r, response.data)); 
+        console.log(key + " " + r + ' succeeded'); 
+        //console.log(extractDataFromHtml(key + " " + r, response.data)); 
         console.log(); 
       }).catch(err => { 
         console.log( key + " " + r + ' failed \n' + err); 
