@@ -81,5 +81,7 @@ postRequest: { selectedTerm: 'FA19',
 classList: JSON.parse(require('fs').readFileSync("classList.json")),
 blacklist: JSON.parse(require('fs').readFileSync("blacklist.json")),
 
-currTerm: 'Fall 2019'
+currTerm: 'Fall 2019', 
+
+REFRESH_TIMEOUT: 900000
 }

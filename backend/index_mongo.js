@@ -1,13 +1,13 @@
-const express = require("express");
+const express = require('express');
 const app = express();
-const path = require("path");
-
-const axios = require("axios");
 const cors = require('cors');
-const parser = require("node-html-parser");
-const qs = require("qs");
+const path = require('path');
 
-const AWS = require('aws-sdk');
+const axios = require('axios');
+const parser = require('node-html-parser');
+const qs = require('qs');
+
+const mongo = require('mongodb');
 
 const resources = require('./res.js');
 
@@ -19,17 +19,15 @@ const header = resources.header;
 
 //setInterval( getClassData, resources.REFRESH_TIMEOUT);
 
-const key = config.key;
-const secret = config.secret;
+const user = config.user; 
+const pass = config.pass;
+const host = config.host; 
 
-AWS.config.update({
-  "region": "us-east-2",
-  "endpoint": "https://dynamodb.us-east-2.amazonaws.com",
-  "accessKeyId": key,
-  "secretAccessKey": secret
-  });
+const connectionString = `mongodb+srv://${user}:${pass}@${host}`;
 
-const docClient = new AWS.DynamoDB.DocumentClient();
+var MongoClient = mongo.MongoClient;
+var mydb = null;
+connectDb();
 
 var cache = {};
 var currTerm = resources.currTerm;
@@ -63,7 +61,7 @@ app.get('/api/class/:className', function(req, res) {
     if(/^[^A-z]$/i.test(postRequest.courses[postRequest.courses.length-1]))
       postRequest.courses += "-A";
 
-    findFromDb(req.params.className, res);
+    connectAndFind(req.params.className, res);
     console.log("returning database object");
     console.log(new Date().getTime() - res.timeOfArrival);
 
@@ -77,7 +75,7 @@ app.get('/api/class/:className', function(req, res) {
         console.log("processed data");
         console.log(new Date().getTime() - res.timeOfArrival);
         // add the current course info to database
-        addToDb(currCourse);
+        connectAndAdd(currCourse);
         console.log("added to db");
         console.log(new Date().getTime() - res.timeOfArrival);
         
@@ -102,64 +100,67 @@ app.get('/api/cache/:className', function(req, res){
       res.status(404).send('cache not found, try again later');
 });
 
-function findFromDb(courseName, res){
-  /*
-  var params = { 
-    TableName: "classes", 
-    Key: {
-      "name": courseName, 
-      "term": currTerm 
-    }
-  };
-  */
-  var params = { 
-    TableName: "classes", 
-    KeyConditionExpression: "#nm = :n",
-    ExpressionAttributeNames: {
-      "#nm": "name"
-    },
-    ExpressionAttributeValues: {
-      ":n": courseName, 
-    }
-  };
-
-  console.log(params);
-
-  docClient.query(params, (err, result) => res.json(result.Items));
+function connectDb(){
+  MongoClient.connect(connectionString, {useNewUrlParser: true}, 
+      (err, database) => { mydb = database; console.log("db connected"); });
 }
 
-function addToDb(currCourse){
-    var params = { 
-      TableName: "classes", 
-       Key: {
-         "name": currCourse.name, 
-         "term": currTerm 
-       }
-    };
+function disconnectFromDb(){
+  this.db.close();
+  this.db = null;
+}
 
-    var object = {
-      TableName: 'classes',
-      Item: {}
-    }
+function connectAndFind(courseName, res){
+  if(mydb === null)
+    MongoClient.connect(connectionString, {useNewUrlParser: true}, 
+      (err, database) => { if(err) throw err; 
+      console.log(database); 
+      mydb = database; 
+      findFromDb(database, courseName, res); });
+  else if(!mydb.isConnected())
+    db.connect().then( r => { mydb = r; findFromDb(r, courseName, res); });
+  else
+    findFromDb(mydb, courseName, res); 
+}
 
-    docClient.get(params, (err, result) => {
-      if(err) throw err;
+function connectAndAdd(currCourse){
+  if(mydb === null)
+    MongoClient.connect(connectionString, {useNewUrlParser: true}, 
+      (err, database) => { mydb = database; addToDb(mydb, currCourse, res); });
+  else if(!mydb.isConnected())
+    mydb.connect().then( r => { mydb = r; addToDb(mydb, courseName, res); });
+  else
+    addToDb(mydb, currCourse); 
+}
 
-      if(result.Item !== undefined){ 
-        var dbCourse = result.Item;
+function findFromDb(db, courseName, res){
+  var dbo = db.db("mydb");
+  var classes = dbo.collection("classes");
+  var query = { name: courseName };
+
+  classes.find(query).toArray( (err, result) => res.json(result) );
+}
+
+function addToDb(db, currCourse){
+    var dbo = db.db("mydb");
+    var classes = dbo.collection("classes");
+    var query = { name: currCourse.name, term: currCourse.term };
+
+    dbo.collection("classes").findOne(query).then( dbCourse => { 
+      if(dbCourse){
         for(var i = 0; i < currCourse.classes.length; i++){
         //discussions loop, get each section
           for(var j = 0; j < currCourse.classes[i].discussions.length; j++){
             //check for 5 minute time difference
             if(dbCourse.classes[i].discussions[j].enrollments[
                   dbCourse.classes[i].discussions[j].enrollments.length-1]
-                  .time + resources.REFRESH_TIMEOUT < currCourse.classes[i]
-                  .discussions[j].enrollments[currCourse.classes[i]
-                  .discussions[j].enrollments.length-1].time || 
+                  .time + 300000 < currCourse.classes[i].discussions[j]
+                  .enrollments[currCourse.classes[i].discussions[j]
+                  .enrollments.length-1].time || 
                   //check for different seat count
                   dbCourse.classes[i].discussions[j].enrollments[
                   dbCourse.classes[i].discussions[j].enrollments.length-1]
-                  .remaining !== currCourse.classes[i].discussions[j]
+                  .remaining != currCourse.classes[i].discussions[j]
                   .enrollments[currCourse.classes[i].discussions[j]
                   .enrollments.length-1].remaining)
               dbCourse.classes[i].discussions[j].enrollments.push(
@@ -167,16 +168,12 @@ function addToDb(currCourse){
                   currCourse.classes[i].discussions[j].enrollments.length-1]);
           }
         }
-        object['Item'] = dbCourse;
-        
+        dbo.collection("classes").replaceOne(query, dbCourse);
       }
-      else
-        object.Item = currCourse;
-
-      docClient.put(object, (err, data) => { 
-        if(err) throw err; 
-        else console.log('success');
-      });
+      else{
+        dbo.collection("classes").insertOne(currCourse);
+        dbCourse = currCourse;
+      }
     });
 }
 
