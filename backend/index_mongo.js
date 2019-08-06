@@ -17,6 +17,7 @@ const config = require('./config.js');
 const url = resources.url;
 const header = resources.header;
 
+getClassData();
 //setInterval( getClassData, resources.REFRESH_TIMEOUT);
 
 const user = config.user; 
@@ -317,13 +318,10 @@ function getClassData(){
         postRequest.courses += "-A";
       axios.post(url, qs.stringify(postRequest), header)
       .then(response => {
-        addToDb(extractDataFromHtml(key + " " + r, response.data));
-        console.log(); 
-        console.log(key + " " + r + ' succeeded'); 
-        //console.log(extractDataFromHtml(key + " " + r, response.data)); 
-        console.log(); 
+        connectAndAdd(extractDataFromHtml(key + " " + r, response.data));
+        console.log(`${key} ${r} succeeded`);
       }).catch(err => { 
-        console.log( key + " " + r + ' failed \n' + err); 
+        console.log( `${key} ${r} failed \n ${err}` );
         blacklist.push(key+" "+r);
       });
     }

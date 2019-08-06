@@ -30,13 +30,18 @@ class App extends React.Component {
   render(){ 
     if(this.state.submitted)
       return ( 
-        <> 
+        <div> 
           <Navigation onClick = {this.onClick} /> 
           <Data url={this.state.url}/> 
-        </>
+        </div>
       )
     
-    return <Home submit={this.submit}/>
+    return (
+      <div>
+        <Navigation onClick = {this.onClick} /> 
+        <Home submit={this.submit}/>
+      </div>
+    )
   }
 }
 
