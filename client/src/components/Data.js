@@ -87,11 +87,19 @@ class Data extends React.Component {
           <br/>
           <br/>
           {this.state.currentData.classes.map(cls => 
-            <ClassBar data={cls.discussions[0]}/>
+            <ClassDisplay data={cls}/>
           )}
         </div>
     );
   }
+}
+
+function ClassDisplay(data){
+  return (
+    <div className="w3-card-4" style={{margin: '20px'}}>
+      {data.data.discussions.map(el => <ClassBar data= {el} /> )}
+    </div>
+  )
 }
 
 function ClassBar(data){
@@ -101,6 +109,12 @@ function ClassBar(data){
   var style = {width: `${percentage}%`};
   if(percentage > 90 )
     style.background = 'red';
+  var seatinfo = '';
+  if(remaining > 0) 
+    seatinfo = `${remaining} Remaining out of ${total} seats`;
+  else 
+    seatinfo = `0 Remaining out of ${total} seats, 
+                      Waitlist at ${remaining*-1}`;
 
   return (
     <div className="cls-graph-parent">
@@ -109,10 +123,11 @@ function ClassBar(data){
       </div>
       <div className="cls-graph-outline" >
         <div className="cls-graph-bar" style={style}>
-          <div className="cls-graph-text">
-            {style.width} 
-          </div>
+          {style.width} 
         </div>
+      </div>
+      <div className="cls-graph-text">
+        { seatinfo }
       </div>
     </div>
   );
