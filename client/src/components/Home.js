@@ -1,6 +1,7 @@
 import React from 'react';
 import logo from '../resources/logo.svg';
 import '../resources/App.css';
+import {classUrl, cacheUrl} from '../resources/config.js';
 
 import classList from '../resources/classList.json';
 
@@ -21,11 +22,8 @@ class Home extends React.Component{
   }
 
   handleSubmit(event){
-    this.props.submit({url: 
-          'http://localhost:5000/api/class/'+this.state.dept+' '+this.state.cls,
-          cacheUrl:
-          'http://localhost:5000/api/cache/'+this.state.dept+' '+this.state.cls
-      });
+    this.props.submit({url: classUrl+this.state.dept+' '+this.state.cls,
+          cacheUrl: cacheUrl+this.state.dept+' '+this.state.cls });
     this.setState({redirect: true});
     event.preventDefault();  
   }

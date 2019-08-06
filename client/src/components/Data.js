@@ -70,11 +70,22 @@ class Data extends React.Component {
 
     const fullTimes = this.state.fullTimes; 
 
+    const table2 = this.state.currentData.classes.map((cls, index) => 
+      <ClassDisplay data={cls}/>);
+
     return (
         <div>
           <p> The class filled up at time t last quarter </p>
           <p> At time q, the class was as follows: </p>
             {table}
+          <br/>
+          <br/>
+          <h1>
+            Current Class Data
+          </h1>
+          <table className="row">
+            {table2}
+          </table>
           <br/>
           <br/>
           <table>
@@ -84,11 +95,7 @@ class Data extends React.Component {
             <th> Remaining Seats at that time </th>
             {fullTimes}
           </table>
-          <br/>
-          <br/>
-          {this.state.currentData.classes.map(cls => 
-            <ClassDisplay data={cls}/>
-          )}
+
         </div>
     );
   }
@@ -96,8 +103,14 @@ class Data extends React.Component {
 
 function ClassDisplay(data){
   return (
-    <div className="w3-card-4" style={{margin: '20px'}}>
-      {data.data.discussions.map(el => <ClassBar data= {el} /> )}
+    <div className="w3-card-4" style={{margin: '20px', 'max-height': '400px', 'min-width': '500px', 'overflow-y': 'auto'}}>
+      <header className="w3-container w3-blue">
+        <h2> {data.data.lecture} </h2> 
+        <h4> {data.data.instructor} </h4>
+      </header>
+      <div className="w3-container">
+        {data.data.discussions.map(el => <ClassBar data= {el} /> )}
+      </div>
     </div>
   )
 }
@@ -111,10 +124,9 @@ function ClassBar(data){
     style.background = 'red';
   var seatinfo = '';
   if(remaining > 0) 
-    seatinfo = `${remaining} Remaining out of ${total} seats`;
+    seatinfo = `${remaining} remaining out of ${total} seats`;
   else 
-    seatinfo = `0 Remaining out of ${total} seats, 
-                      Waitlist at ${remaining*-1}`;
+    seatinfo = `${total} total seats, waitlist at ${remaining*-1}`;
 
   return (
     <div className="cls-graph-parent">

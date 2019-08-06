@@ -73,14 +73,14 @@ th{
 
 .cls-graph-parent{
   display: flex;
-  padding: 20px;
+  padding: 10px;
   align-items: center;
 }
 
 .cls-graph-outline{
   border: 2px solid black;
   border-radius: 30px;
-  height: 60px;
+  height: 25px;
   width: 60%;
   margin: 10px;
 }
@@ -98,7 +98,24 @@ th{
 .cls-graph-section{
   margin: 10px;
   text-align: center;
-  font-size: 35px;
+  font-size: 15px;
+}
+
+.cls-graph-text{
+  margin: 10px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.row{
+  display:flex;
+  flex-direction: vertical;
+  border: 0px;
+  overflow-x: auto;
+}
+
+.column{
+  display: flex;
 }
 
 @keyframes App-logo-spin {
