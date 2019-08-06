@@ -9,60 +9,66 @@ class Data extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      res: null
+      res: null,
+      fullTimes: [],
+      currentData: null
     };
   }
 
   componentDidMount(){
     axios.get(this.props.url)
-      .then( result => 
+      .then( result => {
+          axios.get(this.props.cacheUrl).then( cache => { 
+            this.setState({ currentData: cache.data });
+          });
+
+          //loop through all historical term (Fall Winter and Spring of all prev yrs)
+          const times = this.state.fullTimes;
+          result.data.forEach( course => {
+            //loop through all lectures for each course-term.
+            course.classes.forEach( cls => {
+              //loop through all section for each lecture
+              cls.discussions.forEach( row => {
+
+                //use temp object to avoid unterminated JSX code issues
+                const temp = [];
+                temp.push(<td> {cls.instructor} </td>);
+                temp.push(<td> {row.section} </td>);
+                for(var i = row.enrollments.length - 1; i > -1; i--)
+                  if(row.enrollments[i].remaining > 0)
+                    break;
+
+                if(i === -1){
+                  i = 0;
+                }
+                temp.push(<td> 
+                  { new Date(row.enrollments[i].time).toString('hh mm') } 
+                </td>);
+                temp.push(<td> {row.enrollments[i].remaining} </td>);
+
+                times.push(<tr> {temp} </tr>);
+              })
+            })
+          });
+
           this.setState({
-            res: result.data
+            res: result.data,
+            fullTimes: times
           })
-      );
+      });
   }
 
   render(){ 
-    if(this.state.res === null)
+    if(this.state.res === null || this.state.currentData === null)
       return <p> Loading </p> 
 
     var table = [];
-
-    console.log(this.state.res);
 
     this.state.res[0].classes.forEach( row => {
       table.push(<div className="w3-card-4"> <p> {row.instructor} </p> </div>);
     });
 
-    const fullTimes = [];
-
-    //loop through all historical term (Fall Winter and Spring of all prev yrs)
-    this.state.res.forEach( course => {
-      //loop through all lectures for each course-term.
-      course.classes.forEach( cls => {
-        //loop through all section for each lecture
-        cls.discussions.forEach( row => {
-
-          //use temp object to avoid unterminated JSX code issues
-          const temp = [];
-          temp.push(<td> {cls.instructor} </td>);
-          temp.push(<td> {row.section} </td>);
-          for(var i = row.enrollments.length - 1; i > -1; i--)
-            if(row.enrollments[i].remaining > 0)
-              break;
-
-          if(i === -1){
-            i = 0;
-          }
-          temp.push(<td> 
-            { new Date(row.enrollments[i].time).toString('hh mm') } 
-          </td>);
-          temp.push(<td> {row.enrollments[i].remaining} </td>);
-
-          fullTimes.push(<tr> {temp} </tr>);
-        })
-      })
-    });
+    const fullTimes = this.state.fullTimes; 
 
     return (
         <div>
@@ -78,12 +84,38 @@ class Data extends React.Component {
             <th> Remaining Seats at that time </th>
             {fullTimes}
           </table>
+          <br/>
+          <br/>
+          {this.state.currentData.classes.map(cls => 
+            <ClassBar data={cls.discussions[0]}/>
+          )}
         </div>
     );
-
-
   }
 }
 
+function ClassBar(data){
+  const {remaining, total} = data.data.enrollments[0];
+  var percentage = (total-remaining)/total*100;
+  if(percentage > 100) percentage = 100;
+  var style = {width: `${percentage}%`};
+  if(percentage > 90 )
+    style.background = 'red';
+
+  return (
+    <div className="cls-graph-parent">
+      <div className="cls-graph-section">
+        {data.data.section}
+      </div>
+      <div className="cls-graph-outline" >
+        <div className="cls-graph-bar" style={style}>
+          <div className="cls-graph-text">
+            {style.width} 
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default Data;

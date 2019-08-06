@@ -22,7 +22,9 @@ class Home extends React.Component{
 
   handleSubmit(event){
     this.props.submit({url: 
-          'http://localhost:5000/api/class/'+this.state.dept+' '+this.state.cls
+          'http://localhost:5000/api/class/'+this.state.dept+' '+this.state.cls,
+          cacheUrl:
+          'http://localhost:5000/api/cache/'+this.state.dept+' '+this.state.cls
       });
     this.setState({redirect: true});
     event.preventDefault();  

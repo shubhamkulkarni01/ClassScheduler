@@ -71,6 +71,40 @@ th{
   width: 20%;
 }
 
+.cls-graph-parent{
+  display: flex;
+  padding: 20px;
+  border: 2px solid grey;
+}
+
+.cls-graph-outline{
+  border: 2px solid grey;
+  height: 60px;
+  width: 60%;
+  margin: 10px;
+}
+
+.cls-graph-bar{
+  background-color: green; 
+  height: 100%;
+  vertical-align: middle;
+  font-size: 15px;
+}
+
+.cls-graph-section{
+  margin: 10px;
+  border: 2px solid grey;
+  text-align: center;
+  font-size: 35px;
+}
+
+.cls-graph-text{
+  font-size: 15px;
+  border: 1px solid black;
+  float: right;
+  width: content;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

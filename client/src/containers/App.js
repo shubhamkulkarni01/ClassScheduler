@@ -13,6 +13,7 @@ class App extends React.Component {
     super(props);
     this.state = { 
         url: null,
+        cacheUrl:null,
         submitted: false
     };
     this.onClick = this.onClick.bind(this);
@@ -20,7 +21,7 @@ class App extends React.Component {
   }
 
   submit(obj){
-    this.setState({submitted: true, url: obj.url});
+    this.setState({submitted: true, url: obj.url, cacheUrl: obj.cacheUrl});
   }
 
   onClick(event){
@@ -32,7 +33,7 @@ class App extends React.Component {
       return ( 
         <div> 
           <Navigation onClick = {this.onClick} /> 
-          <Data url={this.state.url}/> 
+          <Data url={this.state.url} cacheUrl={this.state.cacheUrl} /> 
         </div>
       )
     
