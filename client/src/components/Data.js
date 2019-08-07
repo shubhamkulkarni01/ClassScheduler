@@ -18,44 +18,50 @@ class Data extends React.Component {
   componentDidMount(){
     axios.get(this.props.url)
       .then( result => {
-          axios.get(this.props.cacheUrl).then( cache => { 
-            this.setState({ currentData: cache.data });
-          });
-
-          //loop through all historical term (Fall Winter and Spring of all prev yrs)
+          //loop through all historical term 
+          //(Fall Winter and Spring of all prev yrs)
           const times = this.state.fullTimes;
-          result.data.forEach( course => {
-            //loop through all lectures for each course-term.
-            course.classes.forEach( cls => {
-              //loop through all section for each lecture
-              cls.discussions.forEach( row => {
+          if(result.data.length > 0){
+            result.data.forEach( course => {
+              //loop through all lectures for each course-term.
+              course.classes.forEach( cls => {
+                //loop through all section for each lecture
+                cls.discussions.forEach( row => {
+                  //use temp object to avoid unterminated JSX code issues
+                  const temp = [];
+                  temp.push(<td> {cls.instructor} </td>);
+                  temp.push(<td> {row.section} </td>);
+                  for(var i = row.enrollments.length - 1; i > -1; i--)
+                    if(row.enrollments[i].remaining > 0)
+                      break;
 
-                //use temp object to avoid unterminated JSX code issues
-                const temp = [];
-                temp.push(<td> {cls.instructor} </td>);
-                temp.push(<td> {row.section} </td>);
-                for(var i = row.enrollments.length - 1; i > -1; i--)
-                  if(row.enrollments[i].remaining > 0)
-                    break;
+                  if(i === -1){
+                    i = 0;
+                  }
+                  temp.push(<td> 
+                    { new Date(row.enrollments[i].time).toString('hh mm') } 
+                  </td>);
+                  temp.push(<td> {row.enrollments[i].remaining} </td>);
 
-                if(i === -1){
-                  i = 0;
-                }
-                temp.push(<td> 
-                  { new Date(row.enrollments[i].time).toString('hh mm') } 
-                </td>);
-                temp.push(<td> {row.enrollments[i].remaining} </td>);
-
-                times.push(<tr> {temp} </tr>);
+                  times.push(<tr> {temp} </tr>);
+                })
               })
-            })
-          });
+            });
+          }
 
           this.setState({
             res: result.data,
             fullTimes: times
-          })
+          });
+
+          this.axiosRetry();
       });
+  }
+  
+  axiosRetry(){
+    axios.get(this.props.cacheUrl).then(cache => 
+      this.setState({ currentData: cache.data })
+    ).catch(e => this.axiosRetry());
   }
 
   render(){ 
@@ -63,6 +69,8 @@ class Data extends React.Component {
       return <p> Loading </p> 
 
     var table = [];
+    
+    console.log(this.state.res);
 
     this.state.res[0].classes.forEach( row => {
       table.push(<div className="w3-card-4"> <p> {row.instructor} </p> </div>);
@@ -103,7 +111,12 @@ class Data extends React.Component {
 
 function ClassDisplay(data){
   return (
-    <div className="w3-card-4" style={{margin: '20px', 'max-height': '400px', 'min-width': '500px', 'overflow-y': 'auto'}}>
+    <div className="w3-card-4" 
+        style={{
+          margin: '20px', 
+          'max-height': '400px', 
+          'min-width': '500px', 
+          'overflow-y': 'auto'}}>
       <header className="w3-container w3-blue">
         <h2> {data.data.lecture} </h2> 
         <h4> {data.data.instructor} </h4>
