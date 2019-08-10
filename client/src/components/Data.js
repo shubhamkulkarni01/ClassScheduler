@@ -31,15 +31,17 @@ class Data extends React.Component {
                   const temp = [];
                   temp.push(<td> {cls.instructor} </td>);
                   temp.push(<td> {row.section} </td>);
+                  var msg = "";
                   for(var i = row.enrollments.length - 1; i > -1; i--)
-                    if(row.enrollments[i].remaining > 0)
+                    if(row.enrollments[i].remaining >= 0)
                       break;
 
                   if(i === -1){
                     i = 0;
+                    msg = " no enrollments > 0 ";
                   }
                   temp.push(<td> 
-                    { new Date(row.enrollments[i].time).toString('hh mm') } 
+                    {new Date(row.enrollments[i].time).toString('hh mm') + msg} 
                   </td>);
                   temp.push(<td> {row.enrollments[i].remaining} </td>);
 
@@ -68,24 +70,24 @@ class Data extends React.Component {
     if(this.state.res === null || this.state.currentData === null)
       return <p> Loading </p> 
 
-    var table = [];
-    
-    console.log(this.state.res);
-
-    this.state.res[0].classes.forEach( row => {
-      table.push(<div className="w3-card-4"> <p> {row.instructor} </p> </div>);
-    });
-
-    const fullTimes = this.state.fullTimes; 
+    if(this.state.res.length !== 0)
+      var fullTimes = (  
+          <table>
+            <tr>
+              <th> Instructor </th>
+              <th> Section </th>
+              <th> Time of Fill </th>
+              <th> Remaining Seats at that time </th>
+            </tr>
+            {this.state.fullTimes}
+          </table>
+          );
 
     const table2 = this.state.currentData.classes.map((cls, index) => 
       <ClassDisplay data={cls}/>);
 
     return (
         <div>
-          <p> The class filled up at time t last quarter </p>
-          <p> At time q, the class was as follows: </p>
-            {table}
           <br/>
           <br/>
           <h1>
@@ -96,13 +98,13 @@ class Data extends React.Component {
           </table>
           <br/>
           <br/>
-          <table>
-            <th> Instructor </th>
-            <th> Section </th>
-            <th> Time of Fill </th>
-            <th> Remaining Seats at that time </th>
-            {fullTimes}
-          </table>
+          <h1>
+            Historical Data
+            <div className="tooltip">     help
+              <span className="tooltiptext"> insert help message </span>
+            </div>
+          </h1>
+          {fullTimes}
 
         </div>
     );
@@ -114,9 +116,9 @@ function ClassDisplay(data){
     <div className="w3-card-4" 
         style={{
           margin: '20px', 
-          'max-height': '400px', 
-          'min-width': '500px', 
-          'overflow-y': 'auto'}}>
+          maxHeight: '400px', 
+          minWidth: '500px', 
+          overflowY: 'auto'}}>
       <header className="w3-container w3-blue">
         <h2> {data.data.lecture} </h2> 
         <h4> {data.data.instructor} </h4>
@@ -130,11 +132,18 @@ function ClassDisplay(data){
 
 function ClassBar(data){
   const {remaining, total} = data.data.enrollments[0];
-  var percentage = (total-remaining)/total*100;
-  if(percentage > 100) percentage = 100;
+  var percentage = ((total-remaining)/total*100).toFixed(0);
+  if(percentage > 100) 
+    percentage = 100;
   var style = {width: `${percentage}%`};
   if(percentage > 90 )
-    style.background = 'red';
+    style.background = `repeating-linear-gradient( 
+        -45deg,
+        #d11717, 
+        #d11717 10%, 
+        #ba1414 10%, 
+        #ba1414 20%
+    )`;
   var seatinfo = '';
   if(remaining > 0) 
     seatinfo = `${remaining} remaining out of ${total} seats`;
@@ -156,6 +165,29 @@ function ClassBar(data){
       </div>
     </div>
   );
+}
+
+function PrevClassContainer(data){
+  return (
+    <div className="w3-card-4" 
+        style={{
+          margin: '20px', 
+          maxHeight: '400px', 
+          minWidth: '500px', 
+          overflowY: 'auto'}}>
+      <header className="w3-container w3-blue">
+        <h2> {data.data.lecture} </h2> 
+        <h4> {data.data.instructor} </h4>
+      </header>
+      <div className="w3-container">
+        {data.data.discussions.map(el => <PrevClass data= {el} /> )}
+      </div>
+    </div>
+  )
+}
+
+function PrevClass(data){
+  return (<div/>);
 }
 
 export default Data;
