@@ -73,7 +73,8 @@ function InputList(props){
           className="homeSelector" 
           name={props.listName} 
           onChange = {props.handleChange} >
-        { props.list.map( value => <option value={value}> {value} </option> ) }
+        { props.list.map( (value, index) => 
+              <option key={index} value={value}> {value} </option> ) }
       </select>
   );
 }

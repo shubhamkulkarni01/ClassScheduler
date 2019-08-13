@@ -29,8 +29,8 @@ class Data extends React.Component {
                 cls.discussions.forEach( row => {
                   //use temp object to avoid unterminated JSX code issues
                   const temp = [];
-                  temp.push(<td> {cls.instructor} </td>);
-                  temp.push(<td> {row.section} </td>);
+                  temp.push(<td key="instructor"> {cls.instructor} </td>);
+                  temp.push(<td key="section"> {row.section} </td>);
                   var msg = "";
                   for(var i = row.enrollments.length - 1; i > -1; i--)
                     if(row.enrollments[i].remaining >= 0)
@@ -40,12 +40,13 @@ class Data extends React.Component {
                     i = 0;
                     msg = " no enrollments > 0 ";
                   }
-                  temp.push(<td> 
+                  temp.push(<td key="time"> 
                     {new Date(row.enrollments[i].time).toString('hh mm') + msg} 
                   </td>);
-                  temp.push(<td> {row.enrollments[i].remaining} </td>);
+                  temp.push(<td key="remaining"> 
+                      {row.enrollments[i].remaining} </td>);
 
-                  times.push(<tr> {temp} </tr>);
+                  times.push(<tr key={row.section}>{temp}</tr>);
                 })
               })
             });
@@ -56,14 +57,14 @@ class Data extends React.Component {
             fullTimes: times
           });
 
-          this.axiosRetry();
+          this.axiosRetry(2000);
       });
   }
   
-  axiosRetry(){
+  axiosRetry(milliseconds){
     axios.get(this.props.cacheUrl).then(cache => 
       this.setState({ currentData: cache.data })
-    ).catch(e => this.axiosRetry());
+    ).catch(e => setTimeout(this.axiosRetry(milliseconds+1000), milliseconds));
   }
 
   render(){ 
@@ -73,18 +74,22 @@ class Data extends React.Component {
     if(this.state.res.length !== 0)
       var fullTimes = (  
           <table>
-            <tr>
-              <th> Instructor </th>
-              <th> Section </th>
-              <th> Time of Fill </th>
-              <th> Remaining Seats at that time </th>
-            </tr>
-            {this.state.fullTimes}
+            <thead>
+              <tr key="head">
+                <th> Instructor </th>
+                <th> Section </th>
+                <th> Time of Fill </th>
+                <th> Remaining Seats at that time </th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.state.fullTimes}
+            </tbody>
           </table>
           );
 
     const table2 = this.state.currentData.classes.map((cls, index) => 
-      <ClassDisplay data={cls}/>);
+      <ClassDisplay key={index} data={cls}/>);
 
     return (
         <div>
@@ -93,9 +98,9 @@ class Data extends React.Component {
           <h1>
             Current Class Data
           </h1>
-          <table className="row">
+          <div className="row">
             {table2}
-          </table>
+          </div>
           <br/>
           <br/>
           <h1>
@@ -104,6 +109,7 @@ class Data extends React.Component {
               <span className="tooltiptext"> insert help message </span>
             </div>
           </h1>
+          <PrevClassContainer courseTerm={this.state.res[0]} />
           {fullTimes}
 
         </div>
@@ -124,7 +130,8 @@ function ClassDisplay(data){
         <h4> {data.data.instructor} </h4>
       </header>
       <div className="w3-container">
-        {data.data.discussions.map(el => <ClassBar data= {el} /> )}
+        {data.data.discussions.map((el,index) => 
+                <ClassBar key = {index} data = {el} /> )}
       </div>
     </div>
   )
@@ -167,7 +174,7 @@ function ClassBar(data){
   );
 }
 
-function PrevClassContainer(data){
+function PrevClassContainer(props){
   return (
     <div className="w3-card-4" 
         style={{
@@ -176,18 +183,38 @@ function PrevClassContainer(data){
           minWidth: '500px', 
           overflowY: 'auto'}}>
       <header className="w3-container w3-blue">
-        <h2> {data.data.lecture} </h2> 
-        <h4> {data.data.instructor} </h4>
+        <h1> {props.courseTerm.term} </h1> 
       </header>
       <div className="w3-container">
-        {data.data.discussions.map(el => <PrevClass data= {el} /> )}
+        {props.courseTerm.classes.map((el, index) => 
+              <PrevClass key = {index} cls = {el} /> )}
       </div>
     </div>
   )
 }
 
-function PrevClass(data){
-  return (<div/>);
+function PrevClass(props){
+  console.log(props.cls);
+  var lastFillTime = 0;
+  props.cls.discussions.forEach( disc => {
+    //store index of fill time for this discussion into i
+    for(var i = disc.enrollments.length - 1; i > -1; i--)
+      if(disc.enrollments[i].remaining > 0)
+        break;
+
+    if(i === -1){
+      return;
+    }
+    
+    //lastFillTime gets updated if we find a later time of fill.
+    lastFillTime = disc.enrollments[i].time > lastFillTime ? 
+                   disc.enrollments[i].time : lastFillTime;
+  });
+
+  if(lastFillTime === 0)
+    return (<div> No data found </div>);
+
+  return (<div> {new Date(lastFillTime).toString()} </div>);
 }
 
 export default Data;
