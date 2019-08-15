@@ -2,6 +2,8 @@ import React from 'react';
 import '../resources/App.css';
 import '../resources/w3.css';
 
+import help_icon from '../resources/help_icon.png';
+
 import axios from 'axios';
 
 class Data extends React.Component {
@@ -89,27 +91,41 @@ class Data extends React.Component {
           );
 
     const table2 = this.state.currentData.classes.map((cls, index) => 
-      <ClassDisplay key={index} data={cls}/>);
+      <ClassDisplay key={index} data={cls} />);
+
+    const table3 = this.state.res.map((element, index) => 
+      <PrevClassContainer key={index} courseTerm={element} 
+                          currTerm={this.state.currentData.term} />);
 
     return (
         <div>
           <br/>
           <br/>
-          <h1>
+          <h1 className="heading-label">
             Current Class Data
+            <div className="tooltip">
+              <img src={help_icon} alt="Help" width="30px" height="30px"/>
+              <span className="tooltiptext"> Displays current class data in 
+              a graphical format to make it easy to see how many seats are 
+              available. </span>
+            </div>
           </h1>
           <div className="row">
             {table2}
           </div>
           <br/>
           <br/>
-          <h1>
+          <h1 className="heading-label">
             Historical Data
-            <div className="tooltip">     help
-              <span className="tooltiptext"> insert help message </span>
+            <div className="tooltip">
+              <img src={help_icon} alt="Help" width="30px" height="30px"/>
+              <span className="tooltiptext"> Historical class data helps you 
+              plan classes based on when they usually fill up. </span>
             </div>
           </h1>
-          <PrevClassContainer courseTerm={this.state.res[0]} />
+          <div className="row">
+            {table3}
+          </div>
           {fullTimes}
 
         </div>
@@ -175,6 +191,7 @@ function ClassBar(data){
 }
 
 function PrevClassContainer(props){
+  /*
   return (
     <div className="w3-card-4" 
         style={{
@@ -190,18 +207,60 @@ function PrevClassContainer(props){
               <PrevClass key = {index} cls = {el} /> )}
       </div>
     </div>
-  )
+  );*/
+
+    //replaces line 235 in production
+    /* {props.courseTerm.classes.filter(cls => cls.term !== props.currTerm)
+       .map((el, index) => <PrevClass key = {index} cls = {el} /> )} */
+  return (
+    <div className="w3-card-4" 
+        style={{
+          margin: '20px', 
+          maxHeight: '400px', 
+          minWidth: '550px', 
+          overflowY: 'auto'}}>
+      <header className="w3-container w3-blue">
+        <h1> {props.courseTerm.term} </h1> 
+      </header>
+      <div className="w3-container" style={{margin:'10px'}}>
+        <table className="prev-class-table">
+          <thead>
+            <tr key="head" className="prev-class-table">
+              <th className="prev-class-table"> Instructor </th>
+              <th className="prev-class-table"> Section </th>
+              <th className="prev-class-table"> Time of Fill </th>
+            </tr>
+          </thead>
+          <tbody>
+            {props.courseTerm.classes.map((el, index) => 
+                  <PrevClass key = {index} cls = {el} 
+                             currTerm = {props.currTerm === props.courseTerm.term} /> )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
 
 function PrevClass(props){
-  console.log(props.cls);
+  //console.log(props.cls);
+  //console.log(props.currClass);
   var lastFillTime = 0;
-  props.cls.discussions.forEach( disc => {
+  props.cls.discussions.forEach( (disc, index) => {
+    //check if discussion not filled yet
+
+    if((disc.enrollments[disc.enrollments.length - 1].remaining > 0 && 
+       props.currTerm === true) || (lastFillTime === -1)){
+      lastFillTime = -1;
+      return;
+    }
+
     //store index of fill time for this discussion into i
     for(var i = disc.enrollments.length - 1; i > -1; i--)
       if(disc.enrollments[i].remaining > 0)
         break;
 
+    //no positive remaining seat recorded
     if(i === -1){
       return;
     }
@@ -211,10 +270,33 @@ function PrevClass(props){
                    disc.enrollments[i].time : lastFillTime;
   });
 
-  if(lastFillTime === 0)
-    return (<div> No data found </div>);
 
-  return (<div> {new Date(lastFillTime).toString()} </div>);
+  /* return (
+    <div className="cls-graph-parent"> 
+      <div className="cls-graph-section">
+        { props.cls.lecture }
+      </div>
+      <div className="cls-graph-section">
+        { props.cls.instructor }
+      </div>
+      <div className="cls-graph-text">
+        {(lastFillTime === 0)? <div> No data found </div> :
+        new Date(lastFillTime).toString().substring(4, 21)}
+      </div>
+    </div>
+  ); */
+
+  return (
+    <tr className="prev-class-table"> 
+      <td className="prev-class-table"> {props.cls.instructor} </td>
+      <td className="prev-class-table"> {props.cls.lecture} </td>
+      <td className="prev-class-table">
+        {(lastFillTime === 0) ? <div> No data found </div> :
+        (lastFillTime === -1) ? <div> Class still has open seats </div> : 
+        new Date(lastFillTime).toString().substring(4, 21)}
+      </td>
+    </tr>
+  );
 }
 
 export default Data;

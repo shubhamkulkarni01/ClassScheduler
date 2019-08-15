@@ -61,7 +61,7 @@ table{
 }
 
 table, td, th{
-  border: 1px solid gray;
+  border: 1px solid grey;
   text-align: center;
   padding: 10px;
 }
@@ -70,6 +70,13 @@ th{
   padding: 15px;
   width: 20%;
 }
+
+.prev-class-table{
+  margin: 0px;
+  border: none;
+  padding: 10px;
+}
+
 
 .cls-graph-parent{
   display: flex;
@@ -128,23 +135,23 @@ th{
 .tooltip {
   position: relative;
   display: inline-block;
-  border-bottom: 1px dotted black;
+  margin: 0px 14px;
 }
 
 .tooltip .tooltiptext {
   visibility: hidden;
-  width: 120px;
+  width: 240px;
   background-color: black;
   color: #fff;
   font-size: 12px;
   text-align: center;
   border-radius: 6px;
-  padding: 5px 0;
+  padding: 5px 10px;
   position: absolute;
   z-index: 1;
   bottom: 100%;
   left: 50%;
-  margin-left: -60px;
+  margin-left: -120px;
   
   /* Fade in tooltip - takes 1 second to go from 0% to 100% opac: */
   opacity: 0;
@@ -165,6 +172,10 @@ th{
 .tooltip:hover .tooltiptext {
   visibility: visible;
   opacity: 1;
+}
+
+.heading-label{
+  padding: 10px;
 }
 
 @keyframes App-logo-spin {
