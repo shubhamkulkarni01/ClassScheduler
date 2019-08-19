@@ -94,7 +94,7 @@ app.get('/api/class/:className', function(req, res) {
 });
 
 app.get('/api/cache/:className', function(req, res){
-    console.log("GET request arrived: /api/class");
+    console.log("GET request arrived: /api/cache");
     console.log("course name: " + req.params.className);
     console.log(cache);
     //res.json(blacklist);

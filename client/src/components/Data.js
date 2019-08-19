@@ -1,5 +1,4 @@
 import React from 'react';
-import Bounce from 'react-reveal/Bounce';
 
 import '../resources/App.css';
 import '../resources/w3.css';
@@ -20,65 +19,80 @@ class Data extends React.Component {
   }
 
   componentDidMount(){
+    this.axiosRetryClass(1000);
+  }
+
+  axiosRetryClass(milliseconds){
     axios.get(this.props.url)
       .then( result => {
-          //loop through all historical term 
-          //(Fall Winter and Spring of all prev yrs)
-          const times = this.state.fullTimes;
-          if(result.data.length > 0){
-            result.data.forEach( course => {
-              //loop through all lectures for each course-term.
-              course.classes.forEach( cls => {
-                //loop through all section for each lecture
-                cls.discussions.forEach( row => {
-                  //use temp object to avoid unterminated JSX code issues
-                  const temp = [];
-                  temp.push(<td key="instructor"> {cls.instructor} </td>);
-                  temp.push(<td key="section"> {row.section} </td>);
-                  var msg = "";
-                  for(var i = row.enrollments.length - 1; i > -1; i--)
-                    if(row.enrollments[i].remaining >= 0)
-                      break;
+        const times = this.createFullTimesTable(result);
 
-                  if(i === -1){
-                    i = 0;
-                    msg = " no enrollments > 0 ";
-                  }
-                  temp.push(<td key="time"> 
-                    {new Date(row.enrollments[i].time).toString('hh mm') + msg} 
-                  </td>);
-                  temp.push(<td key="remaining"> 
-                      {row.enrollments[i].remaining} </td>);
+        this.setState({
+          res: result.data,
+          fullTimes: times
+        });
 
-                  times.push(<tr key={row.section}>{temp}</tr>);
-                })
-              })
-            });
-          }
+        this.axiosRetryCache(2000);
+      }).catch(e => { 
+        console.log(`retrying in ${milliseconds} milliseconds`);
+        setTimeout((() => this.axiosRetryClass(milliseconds+500)), milliseconds)
+    });
+  
+  }
 
-          this.setState({
-            res: result.data,
-            fullTimes: times
-          });
+  createFullTimesTable(result){
+    //loop through all historical term 
+    //(Fall Winter and Spring of all prev yrs)
+    const times = this.state.fullTimes;
+    if(result.data.length > 0){
+      result.data.forEach( course => {
+        //loop through all lectures for each course-term.
+        course.classes.forEach( cls => {
+          //loop through all section for each lecture
+          cls.discussions.forEach( row => {
+            //use temp object to avoid unterminated JSX code issues
+            const temp = [];
+            temp.push(<td key="instructor"> {cls.instructor} </td>);
+            temp.push(<td key="section"> {row.section} </td>);
+            var msg = "";
+            for(var i = row.enrollments.length - 1; i > -1; i--)
+              if(row.enrollments[i].remaining >= 0)
+                break;
 
-          this.axiosRetry(2000);
+            if(i === -1){
+              i = 0;
+              msg = " no enrollments > 0 ";
+            }
+            temp.push(<td key="time"> 
+              {new Date(row.enrollments[i].time).toString('hh mm') + msg} 
+            </td>);
+            temp.push(<td key="remaining"> 
+                {row.enrollments[i].remaining} </td>);
+
+            times.push(<tr key={row.section}>{temp}</tr>);
+          })
+        })
       });
+    }
+    return times;
   }
   
-  axiosRetry(milliseconds){
+  axiosRetryCache(milliseconds){
     axios.get(this.props.cacheUrl).then(cache => 
       this.setState({ currentData: cache.data })
     ).catch(e => { 
-      console.log('retrying');
-      setTimeout(this.axiosRetry(milliseconds+1000), 5000)
+      if(milliseconds > 10000)
+        this.axiosRetryClass(1000);
+      console.log(`retrying in ${milliseconds} milliseconds`);
+      setTimeout((() => this.axiosRetryCache(milliseconds+500)), milliseconds);
     });
   }
 
   render(){ 
     if(this.state.res === null || this.state.currentData === null)
       return (
-        <div>
-          <h1> Loading... </h1>
+        <div className="loadercontainer">
+          <h1 align="center" className="loadertext"> Loading... </h1>
           <div className="loader"> </div>
         </div>
       );
