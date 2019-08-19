@@ -196,6 +196,18 @@ function ClassBar(data){
     seatinfo = `${remaining} remaining out of ${total} seats`;
   else 
     seatinfo = `${total} total seats, waitlist at ${remaining*-1}`;
+        
+  if(percentage > 20)  
+      var bar = (
+      <div className="cls-graph-bar" style={style}>
+        {style.width} 
+      </div>);
+  else
+      var bar = 
+      (<>
+          <div className="cls-graph-bar" style={style} />
+          <div> {style.width} </div>
+      </>);
 
   return (
     <div className="cls-graph-parent">
@@ -203,9 +215,7 @@ function ClassBar(data){
         {data.data.section}
       </div>
       <div className="cls-graph-outline" >
-        <div className="cls-graph-bar" style={style}>
-          {style.width} 
-        </div>
+        {bar}
       </div>
       <div className="cls-graph-text">
         { seatinfo }
