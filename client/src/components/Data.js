@@ -1,4 +1,6 @@
 import React from 'react';
+import Bounce from 'react-reveal/Bounce';
+
 import '../resources/App.css';
 import '../resources/w3.css';
 
@@ -66,12 +68,20 @@ class Data extends React.Component {
   axiosRetry(milliseconds){
     axios.get(this.props.cacheUrl).then(cache => 
       this.setState({ currentData: cache.data })
-    ).catch(e => setTimeout(this.axiosRetry(milliseconds+1000), milliseconds));
+    ).catch(e => { 
+      console.log('retrying');
+      setTimeout(this.axiosRetry(milliseconds+1000), 5000)
+    });
   }
 
   render(){ 
     if(this.state.res === null || this.state.currentData === null)
-      return <p> Loading </p> 
+      return (
+        <div>
+          <h1> Loading... </h1>
+          <div className="loader"> </div>
+        </div>
+      );
 
     if(this.state.res.length !== 0)
       var fullTimes = (  
@@ -234,7 +244,7 @@ function PrevClassContainer(props){
           <tbody>
             {props.courseTerm.classes.map((el, index) => 
                   <PrevClass key = {index} cls = {el} 
-                             currTerm = {props.currTerm === props.courseTerm.term} /> )}
+                    currTerm = {props.currTerm === props.courseTerm.term} /> )}
           </tbody>
         </table>
       </div>

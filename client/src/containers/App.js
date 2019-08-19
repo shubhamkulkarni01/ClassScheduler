@@ -1,11 +1,10 @@
 import React from 'react';
+
 import '../resources/App.css';
 
 import Home from '../components/Home.js';
 import Data from '../components/Data.js';
-
 import Navigation from '../components/Navigation.js';
-
 
 class App extends React.Component {
 

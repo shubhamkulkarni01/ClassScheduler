@@ -17,9 +17,6 @@ const config = require('./config.js');
 const url = resources.url;
 const header = resources.header;
 
-getClassData();
-//setInterval( getClassData, resources.REFRESH_TIMEOUT);
-
 const user = config.user; 
 const pass = config.pass;
 const host = config.host; 
@@ -29,6 +26,9 @@ const connectionString = `mongodb+srv://${user}:${pass}@${host}`;
 var MongoClient = mongo.MongoClient;
 var mydb = null;
 connectDb();
+
+//getClassData();
+//setInterval( getClassData, resources.REFRESH_TIMEOUT);
 
 var cache = {};
 var currTerm = resources.currTerm;
@@ -66,6 +66,9 @@ app.get('/api/class/:className', function(req, res) {
     console.log("returning database object");
     console.log(new Date().getTime() - res.timeOfArrival);
 
+    console.log("cleaning cache");
+    cache[req.params.className] = null;
+
     console.log("executing axios request for UCSD schedule of classes");
     axios.post(url, qs.stringify(postRequest), header)
     .then(response => { 
@@ -95,7 +98,7 @@ app.get('/api/cache/:className', function(req, res){
     console.log("course name: " + req.params.className);
     console.log(cache);
     //res.json(blacklist);
-    if(req.params.className in cache)
+    if(req.params.className in cache && cache[req.params.className] !== null)
       res.json(cache[req.params.className]);    
     else
       res.status(404).send('cache not found, try again later');
@@ -115,7 +118,7 @@ function connectAndFind(courseName, res){
   if(mydb === null)
     MongoClient.connect(connectionString, {useNewUrlParser: true}, 
       (err, database) => { if(err) throw err; 
-      console.log(database); 
+      //console.log(database); 
       mydb = database; 
       findFromDb(database, courseName, res); });
   else if(!mydb.isConnected())
@@ -127,9 +130,9 @@ function connectAndFind(courseName, res){
 function connectAndAdd(currCourse){
   if(mydb === null)
     MongoClient.connect(connectionString, {useNewUrlParser: true}, 
-      (err, database) => { mydb = database; addToDb(mydb, currCourse, res); });
+      (err, database) => { mydb = database; addToDb(mydb, currCourse); });
   else if(!mydb.isConnected())
-    mydb.connect().then( r => { mydb = r; addToDb(mydb, courseName, res); });
+    mydb.connect().then( r => { mydb = r; addToDb(mydb, courseName); });
   else
     addToDb(mydb, currCourse); 
 }
@@ -149,10 +152,19 @@ function addToDb(db, currCourse){
 
     dbo.collection("classes").findOne(query).then( dbCourse => { 
       if(dbCourse){
-        for(var i = 0; i < currCourse.classes.length; i++){
-        //discussions loop, get each section
-          for(var j = 0; j < currCourse.classes[i].discussions.length; j++){
-            //check for 5 minute time difference
+        //classes loop, get each lecture
+        for(var i = 0; i < dbCourse.classes.length; i++){
+          if(dbCourse.classes[i].lecture !== currCourse.classes[i].lecture || 
+                dbCourse.classes[i].discussions[0] === undefined || 
+                currCourse.classes[i].discussions[0] === undefined)
+            continue;
+          //discussions loop, get each section
+          for(var j = 0; j < dbCourse.classes[i].discussions.length; j++){
+            //ensure correct class / discussion
+            if(dbCourse.classes[i].discussions[j].section !== 
+                  currCourse.classes[i].discussions[j].section)
+              continue;
+            //check for time difference
             if(dbCourse.classes[i].discussions[j].enrollments[
                   dbCourse.classes[i].discussions[j].enrollments.length-1]
                   .time + 300000 < currCourse.classes[i].discussions[j]
@@ -168,6 +180,19 @@ function addToDb(db, currCourse){
                   currCourse.classes[i].discussions[j].enrollments[
                   currCourse.classes[i].discussions[j].enrollments.length-1]);
           }
+          if(j < currCourse.classes[i].discussions.length){
+            dbCourse.classes[i].discussions = [
+                    ...dbCourse.classes[i].discussions, 
+                    ...currCourse.classes[i].discussions.slice(j)
+            ];
+          }
+        }
+        if(i < currCourse.classes.length){
+          console.log(currCourse.classes.slice(i));
+          dbCourse.classes = [
+                  ...dbCourse.classes, 
+                  ...currCourse.classes.slice(i)
+          ];
         }
         dbo.collection("classes").replaceOne(query, dbCourse);
       }
@@ -175,7 +200,8 @@ function addToDb(db, currCourse){
         dbo.collection("classes").insertOne(currCourse);
         dbCourse = currCourse;
       }
-    });
+      console.log('success');
+    }).catch( err => console.log(`${query} with error ${err}`));
 }
 
 // helper function to extract data from html string and compress in object form
@@ -190,6 +216,7 @@ function extractDataFromHtml(courseName, htmlString){
         console.log();
   });
   console.log(selected[0].childNodes.forEach(item => console.log(item)));
+
   //finding whether discussion or lecture 
   console.log(selected[0].childNodes[7].toString().indexOf("Lecture"));
   console.log(); 

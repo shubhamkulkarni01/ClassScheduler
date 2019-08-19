@@ -17,6 +17,7 @@ const config = require('./config.js');
 const url = resources.url;
 const header = resources.header;
 
+//getClassData();
 //setInterval( getClassData, resources.REFRESH_TIMEOUT);
 
 const key = config.key;
@@ -66,6 +67,9 @@ app.get('/api/class/:className', function(req, res) {
     findFromDb(req.params.className, res);
     console.log("returning database object");
     console.log(new Date().getTime() - res.timeOfArrival);
+    
+    console.log("clearing cache");
+    cache[req.params.className] = null;
 
     console.log("executing axios request for UCSD schedule of classes");
     axios.post(url, qs.stringify(postRequest), header)
@@ -147,10 +151,19 @@ function addToDb(currCourse){
 
       if(result.Item !== undefined){ 
         var dbCourse = result.Item;
-        for(var i = 0; i < currCourse.classes.length; i++){
-        //discussions loop, get each section
-          for(var j = 0; j < currCourse.classes[i].discussions.length; j++){
-            //check for 5 minute time difference
+        //classes loop, get each lecture
+        for(var i = 0; i < dbCourse.classes.length; i++){
+          if(dbCourse.classes[i].lecture !== currCourse.classes[i].lecture || 
+                dbCourse.classes[i].discussions === undefined || 
+                currCourse.classes[i].discussions === undefined)
+            continue;
+          //discussions loop, get each section
+          for(var j = 0; j < dbCourse.classes[i].discussions.length; j++){
+            //ensure correct class / discussion
+            if(dbCourse.classes[i].discussions[j].section !== 
+                  currCourse.classes[i].discussions[j].section)
+              continue;
+            //check for time difference
             if(dbCourse.classes[i].discussions[j].enrollments[
                   dbCourse.classes[i].discussions[j].enrollments.length-1]
                   .time + resources.REFRESH_TIMEOUT < currCourse.classes[i]
@@ -166,6 +179,18 @@ function addToDb(currCourse){
                   currCourse.classes[i].discussions[j].enrollments[
                   currCourse.classes[i].discussions[j].enrollments.length-1]);
           }
+          if(j < currCourse.classes[i].discussions.length){
+            dbCourse.classes[i].discussions = [
+                    ...dbCourse.classes[i].discussions, 
+                    ...currCourse.classes[i].discussions.slice(j)
+            ];
+          }
+        }
+        if(i < currCourse.classes.length){
+          dbCourse.classes = [
+                  ...dbCourse.classes, 
+                  ...currCourse.classes.slice(i)
+          ];
         }
         object['Item'] = dbCourse;
         
@@ -321,10 +346,8 @@ function getClassData(){
       axios.post(url, qs.stringify(postRequest), header)
       .then(response => {
         addToDb(extractDataFromHtml(key + " " + r, response.data));
-        console.log(); 
         console.log(key + " " + r + ' succeeded'); 
         //console.log(extractDataFromHtml(key + " " + r, response.data)); 
-        console.log(); 
       }).catch(err => { 
         console.log( key + " " + r + ' failed \n' + err); 
         blacklist.push(key+" "+r);
