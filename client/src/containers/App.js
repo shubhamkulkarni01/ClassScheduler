@@ -13,14 +13,19 @@ class App extends React.Component {
     this.state = { 
         url: null,
         cacheUrl:null,
-        submitted: false
+        submitted: false,
+        className: null
     };
     this.onClick = this.onClick.bind(this);
     this.submit = this.submit.bind(this);
   }
 
   submit(obj){
-    this.setState({submitted: true, url: obj.url, cacheUrl: obj.cacheUrl});
+    this.setState({
+      submitted: true, 
+      url: obj.url, 
+      cacheUrl: obj.cacheUrl, 
+      className: obj.className});
   }
 
   onClick(event){
@@ -31,14 +36,13 @@ class App extends React.Component {
     if(this.state.submitted)
       return ( 
         <div> 
-          <Navigation onClick = {this.onClick} /> 
-          <Data url={this.state.url} cacheUrl={this.state.cacheUrl} /> 
+          <Data url={this.state.url} cacheUrl={this.state.cacheUrl} 
+                className={this.state.className} backButton={this.onClick}/> 
         </div>
       )
     
     return (
       <div>
-        <Navigation onClick = {this.onClick} /> 
         <Home submit={this.submit}/>
       </div>
     )

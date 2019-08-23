@@ -1,4 +1,5 @@
 import React from 'react';
+import Switch from 'react-switch';
 
 import '../resources/App.css';
 import '../resources/w3.css';
@@ -14,8 +15,14 @@ class Data extends React.Component {
     this.state = {
       res: null,
       fullTimes: [],
-      currentData: null
+      currentData: null,
+      checked: false
     };
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  handleChange(checked){
+    this.setState({checked});
   }
 
   componentDidMount(){
@@ -101,7 +108,7 @@ class Data extends React.Component {
       var fullTimes = (  
           <table>
             <thead>
-              <tr key="head">
+              <tr key="head">true
                 <th> Instructor </th>
                 <th> Section </th>
                 <th> Time of Fill </th>
@@ -118,14 +125,18 @@ class Data extends React.Component {
       <ClassDisplay key={index} data={cls} />);
 
     const table3 = this.state.res.map((element, index) => 
-      <PrevClassContainer key={index} courseTerm={element} 
-                          currTerm={this.state.currentData.term} />);
+      <PrevClassContainer key={index} courseTerm={element} HAHA
+                          currTerm={this.state.currentData.term} 
+                          handleChange={this.handleChange} 
+                          checked={this.state.checked}/>);
 
     return (
-        <div>
-          <br/>
-          <br/>
-          <h1 className="heading-label">
+        <div className="dataClass">
+          <div className="dataHeader">
+            <div className="backButton" onClick={this.props.backButton}/>
+            <h1 className="dataTitle"> {this.props.className} </h1>
+          </div>
+          <h2 className="heading-label">
             Current Class Data
             <div className="tooltip">
               <img src={help_icon} alt="Help" width="30px" height="30px"/>
@@ -133,20 +144,20 @@ class Data extends React.Component {
               a graphical format to make it easy to see how many seats are 
               available. </span>
             </div>
-          </h1>
+          </h2>
           <div className="row">
             {table2}
           </div>
           <br/>
           <br/>
-          <h1 className="heading-label">
+          <h2 className="heading-label">
             Historical Data
             <div className="tooltip">
               <img src={help_icon} alt="Help" width="30px" height="30px"/>
               <span className="tooltiptext"> Historical class data helps you 
               plan classes based on when they usually fill up. </span>
             </div>
-          </h1>
+          </h2>
           <div className="row">
             {table3}
           </div>
@@ -169,7 +180,7 @@ function ClassDisplay(data){
         <h2> {data.data.lecture} </h2> 
         <h4> {data.data.instructor} </h4>
       </header>
-      <div className="w3-container">
+      <div className="w3-container w3-white">
         {data.data.discussions.map((el,index) => 
                 <ClassBar key = {index} data = {el} /> )}
       </div>
@@ -203,7 +214,7 @@ function ClassBar(data){
         {style.width} 
       </div>);
   else
-      var bar = 
+      bar = 
       (<>
           <div className="cls-graph-bar" style={style} />
           <div> {style.width} </div>
@@ -243,7 +254,7 @@ function PrevClassContainer(props){
     </div>
   );*/
 
-    //replaces line 235 in production
+    //replaces line 269 (one line inside tbody) in production
     /* {props.courseTerm.classes.filter(cls => cls.term !== props.currTerm)
        .map((el, index) => <PrevClass key = {index} cls = {el} /> )} */
   return (
@@ -253,8 +264,19 @@ function PrevClassContainer(props){
           maxHeight: '400px', 
           minWidth: '550px', 
           overflowY: 'auto'}}>
-      <header className="w3-container w3-blue">
+      <header className="w3-container w3-blue displayHeader">
         <h1> {props.courseTerm.term} </h1> 
+	<div className="toggle-switch-container">
+          <div className="toggle-switch-text">
+            Exact Time
+          </div>
+          <Switch onChange={props.handleChange} checked={props.checked} 
+                  className="toggle-switch" onColor={"#888"} 
+                  uncheckedIcon={false} checkedIcon={false} />
+          <div className="toggle-switch-text">
+            Elapsed Time
+          </div>
+	</div>
       </header>
       <div className="w3-container" style={{margin:'10px'}}>
         <table className="prev-class-table">
@@ -268,7 +290,8 @@ function PrevClassContainer(props){
           <tbody>
             {props.courseTerm.classes.map((el, index) => 
                   <PrevClass key = {index} cls = {el} 
-                    currTerm = {props.currTerm === props.courseTerm.term} /> )}
+                    currTerm = {props.currTerm === props.courseTerm.term} 
+                    elapsedTime={props.checked} /> )}
           </tbody>
         </table>
       </div>
@@ -304,6 +327,7 @@ function PrevClass(props){
                    disc.enrollments[i].time : lastFillTime;
   });
 
+  var arbitraryDate = "2019/06/21 16:20:00";
 
   /* return (
     <div className="cls-graph-parent"> 
@@ -327,6 +351,10 @@ function PrevClass(props){
       <td className="prev-class-table">
         {(lastFillTime === 0) ? <div> No data found </div> :
         (lastFillTime === -1) ? <div> Class still has open seats </div> : 
+        (props.elapsedTime) ? ((new Date(lastFillTime) - 
+                  new Date(arbitraryDate))/86400000).toFixed(0) + " days and " + 
+                  ((new Date(lastFillTime) - new Date(arbitraryDate))%86400000
+                  /86400000*24).toFixed(0) + " hours": 
         new Date(lastFillTime).toString().substring(4, 21)}
       </td>
     </tr>

@@ -23,7 +23,8 @@ class Home extends React.Component{
 
   handleSubmit(event){
     this.props.submit({url: classUrl+this.state.dept+' '+this.state.cls,
-          cacheUrl: cacheUrl+this.state.dept+' '+this.state.cls });
+          cacheUrl: cacheUrl+this.state.dept+' '+this.state.cls, 
+          className: this.state.dept+' '+this.state.cls });
     this.setState({redirect: true});
     event.preventDefault();  
   }

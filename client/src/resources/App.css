@@ -11,7 +11,7 @@
 }
 
 .App-logo {
-  animation: App-logo-spin infinite 20s linear;
+  animation: spin infinite 20s linear;
   height: 40vmin;
   pointer-events: none;
 }
@@ -200,20 +200,85 @@ th{
   flex-direction: column;
 }
 
+.heading-label{
+  padding: 10px;
+}
+
+.dataClass{
+  animation: scrollUp 1s ease-out 1;
+}
+
+.dataHeader{
+  width: stretch;
+  text-align: center;
+}
+
+.dataTitle{
+  margin: -5px 0px 0px 0px;
+  color: #666;
+  font-weight: bold;
+  font-size: 75px;
+  display: inline-block;
+}
+
+.backButton{
+  width: 50px;
+  height: 50px;
+  transform: rotate(45deg);
+  border-left: 12px solid #666;
+  border-bottom: 12px solid #666;
+  border-radius: 5px;
+  display: inline-block;
+  float: left;
+  transform: translate(50%, 50%) rotate(45deg);
+}
+
+.displayHeader{
+  display: flex;
+}
+
+.toggle-switch-container{
+  margin-top: auto;
+  margin-bottom: auto;
+  margin-left: auto;
+  display: flex;
+}
+
+.toggle-switch{
+  margin: 14px;
+}
+
+.toggle-switch-text{
+  text-align: center;
+  margin: auto;
+  font-size: 17px;
+}
+
+/*
+.backButton{
+  width: 0;
+  height: 0;
+  border-top: 25px solid transparent;
+  border-right: 25px solid #666;
+  border-bottom: 25px solid transparent;
+  margin-left: 5%;
+  display: inline-block;
+  float: left;
+  transform: translate(0%, 50%);
+}
+*/
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-.heading-label{
-  padding: 10px;
+@keyframes scrollUp {
+  0% { transform: translate(0, 100%); }
+  100% { transform: translate(0, 0); }
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+@keyframes scrollDown {
+  
 }
+
