@@ -53,7 +53,7 @@ class Data extends React.Component {
   createFullTimesTable(result){
     //loop through all historical term 
     //(Fall Winter and Spring of all prev yrs)
-    const times = this.state.fullTimes;
+    const times = [];
     if(result.data.length > 0){
       result.data.forEach( course => {
         //loop through all lectures for each course-term.
@@ -108,7 +108,8 @@ class Data extends React.Component {
   }
 
   render(){ 
-    if(this.state.res === null || this.state.currentData === null)
+    console.log(this.props.staticData);
+    if(this.state.res === null )
       return (
         <div className="loadercontainer">
           <h1 align="center" className="loadertext"> Loading... </h1>
@@ -133,12 +134,13 @@ class Data extends React.Component {
           </table>
           );
 
-    const table2 = this.state.currentData.classes.map((cls, index) => 
-      <ClassDisplay key={index} data={cls} />);
+    if(this.state.currentData !== null)
+      var table2 = this.state.currentData.classes.map((cls, index) => 
+        <ClassDisplay key={index} data={cls} />);
 
     const table3 = this.state.res.map((element, index) => 
-      <PrevClassContainer key={index} courseTerm={element} HAHA
-                          currTerm={this.state.currentData.term} 
+      <PrevClassContainer key={index} courseTerm={element} 
+                          currTerm={this.props.staticData.term} 
                           handleChange={this.handleChange} 
                           checked={this.state.checked}/>);
 
@@ -158,9 +160,23 @@ class Data extends React.Component {
               available. </span>
             </div>
           </h2>
-            <div className="row">
-              {table2}
-            </div>
+            {this.state.currentData == null ? 
+              (
+              <div className="loadercontainer" 
+                  style={{
+                    margin: '20px', 
+                    maxHeight: '400px', 
+                    minWidth: '500px'}}>
+                <h1 align="center" className="loadertext"> Loading... </h1>
+                <div className="loader"> </div>
+              </div>
+              ):
+              (
+              <div className="row">
+                {table2}
+              </div>
+              )
+            }
           <h2 className="heading-label">
             Historical Data
             <div className="tooltip">

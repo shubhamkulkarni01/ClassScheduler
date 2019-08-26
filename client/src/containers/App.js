@@ -26,7 +26,7 @@ class App extends React.Component {
 
   
   componentDidMount(){
-    //this.axiosRetryStaticData(1000);
+    this.axiosRetryStaticData(1000);
   }
 
   axiosRetryStaticData(milliseconds){
@@ -54,7 +54,6 @@ class App extends React.Component {
   }
 
   render(){ 
-    console.log(this.state.submitted);
     if(this.state.submitted === true)
       return ( 
         <div> 
