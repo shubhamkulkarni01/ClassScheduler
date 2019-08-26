@@ -220,13 +220,7 @@ th{
   margin-bottom: 0px;
 }
 
-.dataClassIn{
-  animation: scrollInLeft 0.4s ease 1;
-  background-color: #282c34;
-}
-
-.dataClassOut{
-  animation: scrollOutRight 0.4s ease 1;
+.dataClass{
   background-color: #282c34;
 }
 
@@ -283,25 +277,29 @@ th{
 .home-hide{
   animation: scrollOutLeft 0.4s ease 1 forwards;
   left: 0%;
-  position: relative;
+  width: 100%;
+  position: absolute;
 }
 
 .home-show{
   animation: scrollInRight 0.4s ease 1 forwards;
   left: 0%;
-  position: relative;
+  width: 100%;
+  position: absolute;
 }
 
 .data-show{
   animation: scrollInLeft 0.4s ease 1 forwards;
-  left: 100%;
+  left: 0%;
+  width: 100%;
   position: absolute;
 }
 
 .data-hide{
   animation: scrollOutRight 0.4s ease 1 forwards;
   position: absolute;
-  left: 100%;
+  width: 100%;
+  left: 0%;
 }
 
 Data{

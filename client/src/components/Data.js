@@ -99,12 +99,11 @@ class Data extends React.Component {
   }
 
   backButton(e){
-    this.setState({animateOut: true});
+    this.props.backButton();
+    console.log('back button clicked');
   }
 
   animationEnd(e){
-    if(this.state.animateOut)
-      this.props.backButton();
   }
 
   render(){ 
@@ -145,8 +144,7 @@ class Data extends React.Component {
                           checked={this.state.checked}/>);
 
     return (
-        <div className={this.state.animateOut?"dataClassOut":"dataClassIn"} 
-             onAnimationEnd={this.animationEnd} >
+        <div className="dataClass">
           <div className="dataHeader">
             <div className="backButton" onClick={this.backButton}/>
             <h1 className="dataTitle"> {this.props.clsName} </h1>
