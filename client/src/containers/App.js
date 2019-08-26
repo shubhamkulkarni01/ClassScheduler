@@ -54,6 +54,21 @@ class App extends React.Component {
   }
 
   render(){ 
+    
+    return (
+      <div className = "app-parent">
+        <div className = {this.state.submitted ? "home-hide" : "home-show"}>
+          <Home onSubmit={this.onSubmit} />
+        </div>
+        <div className = {this.state.submitted ? "data-show" : "data-hide"}>
+          <Data url={this.state.url} cacheUrl={this.state.cacheUrl} 
+                clsName={this.state.className} backButton={this.onClick} 
+                staticData={this.state.staticData} /> 
+        </div>
+      </div>
+    )
+
+
     if(this.state.submitted === true)
       return ( 
         <div> 
@@ -64,7 +79,7 @@ class App extends React.Component {
       )
     
     return (
-      <div>
+      <div className = "home-show">
         <Home onSubmit={this.onSubmit}/>
       </div>
     )
