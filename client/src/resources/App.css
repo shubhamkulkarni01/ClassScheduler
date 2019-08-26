@@ -1,3 +1,7 @@
+#root{
+  background-color: #282c34;
+}
+
 .App {
   text-align: center;
   background-color: #282c34;
@@ -174,6 +178,11 @@ th{
   opacity: 1;
 }
 
+.tooltip-image{
+  width: 37px;
+  height: 37px;
+}
+
 .loader {
   width: 150px;
   height: 150px;
@@ -189,6 +198,7 @@ th{
 
 .loadertext{
   text-align: center;
+  color: white;
 }
 
 .loadercontainer{
@@ -198,14 +208,26 @@ th{
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  background-color: #282c34;
 }
 
 .heading-label{
   padding: 10px;
+  color: white;
+  font-size: 45px;
+  font-weight: bold;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
-.dataClass{
-  animation: scrollUp 1s ease-out 1;
+.dataClassIn{
+  animation: scrollLeft 0.4s ease 1;
+  background-color: #282c34;
+}
+
+.dataClassOut{
+  animation: scrollRight 0.4s ease 1;
+  background-color: #282c34;
 }
 
 .dataHeader{
@@ -215,7 +237,7 @@ th{
 
 .dataTitle{
   margin: -5px 0px 0px 0px;
-  color: #666;
+  color: #ccc;
   font-weight: bold;
   font-size: 75px;
   display: inline-block;
@@ -225,8 +247,8 @@ th{
   width: 50px;
   height: 50px;
   transform: rotate(45deg);
-  border-left: 12px solid #666;
-  border-bottom: 12px solid #666;
+  border-left: 12px solid #ccc;
+  border-bottom: 12px solid #ccc;
   border-radius: 5px;
   display: inline-block;
   float: left;
@@ -254,6 +276,10 @@ th{
   font-size: 17px;
 }
 
+Data{
+  z-index: 3;
+}
+
 /*
 .backButton{
   width: 0;
@@ -273,12 +299,18 @@ th{
   100% { transform: rotate(360deg); }
 }
 
-@keyframes scrollUp {
-  0% { transform: translate(0, 100%); }
-  100% { transform: translate(0, 0); }
+@keyframes scrollLeft {
+  0% { transform: translate(100%)}
+  100% { transform: translate(0%); }
 }
 
-@keyframes scrollDown {
-  
+@keyframes scrollRight {
+  100% { transform: translate(100%); }
+  0% { transform: translate(0%); }
 }
 
+html, body{
+  margin: 0px;
+  height: 100%;
+  width: 100%;
+}

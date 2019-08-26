@@ -2,9 +2,12 @@ import React from 'react';
 
 import '../resources/App.css';
 
+import {classUrl, cacheUrl, staticUrl} from '../resources/config.js';
+
 import Home from '../components/Home.js';
 import Data from '../components/Data.js';
-import Navigation from '../components/Navigation.js';
+
+import axios from 'axios';
 
 class App extends React.Component {
 
@@ -14,18 +17,36 @@ class App extends React.Component {
         url: null,
         cacheUrl:null,
         submitted: false,
-        className: null
+        className: null,
+        staticData: null
     };
     this.onClick = this.onClick.bind(this);
-    this.submit = this.submit.bind(this);
+    this.onSubmit = this.onSubmit.bind(this);
   }
 
-  submit(obj){
+  
+  componentDidMount(){
+    //this.axiosRetryStaticData(1000);
+  }
+
+  axiosRetryStaticData(milliseconds){
+    axios.get(staticUrl).then( result => {
+      this.setState({staticData: result.data});
+    }).catch( e => {
+      console.log(`retrying in ${milliseconds} milliseconds`);
+      setTimeout(
+          (() => this.axiosRetryStaticData(milliseconds+500)), milliseconds
+      );
+    });
+  }
+
+  onSubmit(obj){
     this.setState({
       submitted: true, 
-      url: obj.url, 
-      cacheUrl: obj.cacheUrl, 
-      className: obj.className});
+      url: classUrl+obj.className, 
+      cacheUrl: cacheUrl+obj.className,
+      className: obj.className,
+    });
   }
 
   onClick(event){
@@ -33,17 +54,19 @@ class App extends React.Component {
   }
 
   render(){ 
-    if(this.state.submitted)
+    console.log(this.state.submitted);
+    if(this.state.submitted === true)
       return ( 
         <div> 
           <Data url={this.state.url} cacheUrl={this.state.cacheUrl} 
-                className={this.state.className} backButton={this.onClick}/> 
+                clsName={this.state.className} backButton={this.onClick} 
+                staticData={this.state.staticData} /> 
         </div>
       )
     
     return (
       <div>
-        <Home submit={this.submit}/>
+        <Home onSubmit={this.onSubmit}/>
       </div>
     )
   }

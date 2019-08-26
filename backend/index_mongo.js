@@ -66,8 +66,8 @@ app.get('/api/class/:className', function(req, res) {
     console.log("returning database object");
     console.log(new Date().getTime() - res.timeOfArrival);
 
-    console.log("cleaning cache");
-    cache[req.params.className] = null;
+    //console.log("cleaning cache");
+    //cache[req.params.className] = null;
 
     console.log("executing axios request for UCSD schedule of classes");
     axios.post(url, qs.stringify(postRequest), header)

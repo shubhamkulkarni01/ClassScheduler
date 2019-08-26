@@ -1,7 +1,6 @@
 import React from 'react';
 import logo from '../resources/logo.svg';
 import '../resources/App.css';
-import {classUrl, cacheUrl} from '../resources/config.js';
 
 import classList from '../resources/classList.json';
 
@@ -21,12 +20,15 @@ class Home extends React.Component{
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  handleSubmit(event){
-    this.props.submit({url: classUrl+this.state.dept+' '+this.state.cls,
-          cacheUrl: cacheUrl+this.state.dept+' '+this.state.cls, 
-          className: this.state.dept+' '+this.state.cls });
-    this.setState({redirect: true});
-    event.preventDefault();  
+  handleSubmit(e){
+    if(this.state.dept !== 'Select a department' && 
+       this.state.cls !== 'Select a class'){
+      this.props.onSubmit({
+        className: this.state.dept+' '+this.state.cls 
+      });
+      this.setState({redirect: true});
+    }
+    e.preventDefault();
   }
 
   handleChange(event){
@@ -47,7 +49,7 @@ class Home extends React.Component{
     return (
       <div className="App">
         <img src={logo} className="App-logo" alt="logo" />
-        <form action="/api/class" method="get" onSubmit={this.handleSubmit}>
+        <form method="get" onSubmit={this.handleSubmit}>
           <InputList 
               list = {this.state.deptlist} 
               listName = "department" 
@@ -59,7 +61,9 @@ class Home extends React.Component{
               handleChange = {this.handleChange} 
               value = {this.state.cls} />
 
-          <button className="homeSelector" type="submit"> Fetch Data </button>
+          <button className="homeSelector w3-blue" type="submit"> 
+              Fetch Data 
+          </button>
         </form>
 
       </div>

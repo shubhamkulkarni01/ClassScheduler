@@ -16,9 +16,12 @@ class Data extends React.Component {
       res: null,
       fullTimes: [],
       currentData: null,
-      checked: false
+      checked: false, 
+      animateOut: false
     };
     this.handleChange = this.handleChange.bind(this);
+    this.backButton = this.backButton.bind(this);
+    this.animationEnd = this.animationEnd.bind(this);
   }
 
   handleChange(checked){
@@ -39,7 +42,7 @@ class Data extends React.Component {
           fullTimes: times
         });
 
-        this.axiosRetryCache(2000);
+        this.axiosRetryCache(1000);
       }).catch(e => { 
         console.log(`retrying in ${milliseconds} milliseconds`);
         setTimeout((() => this.axiosRetryClass(milliseconds+500)), milliseconds)
@@ -88,11 +91,20 @@ class Data extends React.Component {
     axios.get(this.props.cacheUrl).then(cache => 
       this.setState({ currentData: cache.data })
     ).catch(e => { 
-      if(milliseconds > 10000)
+      if(milliseconds > 5000)
         this.axiosRetryClass(1000);
       console.log(`retrying in ${milliseconds} milliseconds`);
       setTimeout((() => this.axiosRetryCache(milliseconds+500)), milliseconds);
     });
+  }
+
+  backButton(e){
+    this.setState({animateOut: true});
+  }
+
+  animationEnd(e){
+    if(this.state.animateOut)
+      this.props.backButton();
   }
 
   render(){ 
@@ -108,7 +120,7 @@ class Data extends React.Component {
       var fullTimes = (  
           <table>
             <thead>
-              <tr key="head">true
+              <tr key="head">
                 <th> Instructor </th>
                 <th> Section </th>
                 <th> Time of Fill </th>
@@ -131,29 +143,28 @@ class Data extends React.Component {
                           checked={this.state.checked}/>);
 
     return (
-        <div className="dataClass">
+        <div className={this.state.animateOut?"dataClassOut":"dataClassIn"} 
+             onAnimationEnd={this.animationEnd} >
           <div className="dataHeader">
-            <div className="backButton" onClick={this.props.backButton}/>
-            <h1 className="dataTitle"> {this.props.className} </h1>
+            <div className="backButton" onClick={this.backButton}/>
+            <h1 className="dataTitle"> {this.props.clsName} </h1>
           </div>
           <h2 className="heading-label">
             Current Class Data
             <div className="tooltip">
-              <img src={help_icon} alt="Help" width="30px" height="30px"/>
+              <img className="tooltip-image" src={help_icon} alt="Help" />
               <span className="tooltiptext"> Displays current class data in 
               a graphical format to make it easy to see how many seats are 
               available. </span>
             </div>
           </h2>
-          <div className="row">
-            {table2}
-          </div>
-          <br/>
-          <br/>
+            <div className="row">
+              {table2}
+            </div>
           <h2 className="heading-label">
             Historical Data
             <div className="tooltip">
-              <img src={help_icon} alt="Help" width="30px" height="30px"/>
+              <img className="tooltip-image" src={help_icon} alt="Help" />
               <span className="tooltiptext"> Historical class data helps you 
               plan classes based on when they usually fill up. </span>
             </div>
@@ -170,7 +181,7 @@ class Data extends React.Component {
 
 function ClassDisplay(data){
   return (
-    <div className="w3-card-4" 
+    <div className="w3-card-4 w3-white" 
         style={{
           margin: '20px', 
           maxHeight: '400px', 
@@ -180,7 +191,7 @@ function ClassDisplay(data){
         <h2> {data.data.lecture} </h2> 
         <h4> {data.data.instructor} </h4>
       </header>
-      <div className="w3-container w3-white">
+      <div className="w3-container">
         {data.data.discussions.map((el,index) => 
                 <ClassBar key = {index} data = {el} /> )}
       </div>
@@ -258,7 +269,7 @@ function PrevClassContainer(props){
     /* {props.courseTerm.classes.filter(cls => cls.term !== props.currTerm)
        .map((el, index) => <PrevClass key = {index} cls = {el} /> )} */
   return (
-    <div className="w3-card-4" 
+    <div className="w3-card-4 w3-white" 
         style={{
           margin: '20px', 
           maxHeight: '400px', 
@@ -267,14 +278,18 @@ function PrevClassContainer(props){
       <header className="w3-container w3-blue displayHeader">
         <h1> {props.courseTerm.term} </h1> 
 	<div className="toggle-switch-container">
-          <div className="toggle-switch-text">
+          <div className="tooltip top-tooltip toggle-switch-text">
             Exact Time
+            <span className="tooltiptext"> Exact time will show when the class 
+            filled up according to a clock (date and time). </span>
           </div>
           <Switch onChange={props.handleChange} checked={props.checked} 
                   className="toggle-switch" onColor={"#888"} 
                   uncheckedIcon={false} checkedIcon={false} />
-          <div className="toggle-switch-text">
+          <div className="tooltip top-tooltip toggle-switch-text">
             Elapsed Time
+            <span className="tooltiptext"> Elapsed time will show when the class 
+            filled up relative to the start of first pass. </span>
           </div>
 	</div>
       </header>
