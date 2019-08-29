@@ -68,9 +68,6 @@ app.get('/api/class/:className', function(req, res) {
     console.log("returning database object");
     console.log(new Date().getTime() - res.timeOfArrival);
     
-    console.log("clearing cache");
-    cache[req.params.className] = null;
-
     console.log("executing axios request for UCSD schedule of classes");
     axios.post(url, qs.stringify(postRequest), header)
     .then(response => { 
@@ -98,6 +95,7 @@ app.get('/api/class/:className', function(req, res) {
 app.get('/api/cache/:className', function(req, res){
     console.log("GET request arrived: /api/cache");
     console.log("course name: " + req.params.className);
+    console.log(cache);
     //console.log(cache);
     //res.json(blacklist);
     if(req.params.className in cache)

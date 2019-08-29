@@ -21,16 +21,17 @@ class Data extends React.Component {
     };
     this.handleChange = this.handleChange.bind(this);
     this.backButton = this.backButton.bind(this);
-    this.animationEnd = this.animationEnd.bind(this);
   }
 
   handleChange(checked){
     this.setState({checked});
   }
 
+  /*
   componentDidMount(){
     this.axiosRetryClass(1000);
   }
+  */
 
   axiosRetryClass(milliseconds){
     axios.get(this.props.url)
@@ -102,12 +103,10 @@ class Data extends React.Component {
     this.props.backButton();
     console.log('back button clicked');
   }
-
-  animationEnd(e){
-  }
-
+  
+  /*
   render(){ 
-    console.log(this.props.staticData);
+    console.log('rendering');
     if(this.state.res === null )
       return (
         <div className="loadercontainer">
@@ -189,6 +188,101 @@ class Data extends React.Component {
           {fullTimes}
 
         </div>
+    );
+  } */
+
+  render(){ 
+    console.log('rendering');
+    if(this.props.res === null )
+      return (
+        <div className="loadercontainer">
+          <h1 align="center" className="loadertext"> Loading... </h1>
+          <div className="loader"> </div>
+        </div>
+      );
+
+    if(this.props.res.length !== 0)
+      var fullTimes = (  
+          <table>
+            <thead>
+              <tr key="head">
+                <th> Instructor </th>
+                <th> Section </th>
+                <th> Time of Fill </th>
+                <th> Remaining Seats at that time </th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.state.fullTimes}
+            </tbody>
+          </table>
+          );
+
+    if(this.props.currentData !== null)
+      var table2 = this.props.currentData.classes.map((cls, index) => 
+        <ClassDisplay key={index} data={cls} />);
+
+    const table3 = this.props.res.map((element, index) => 
+      <PrevClassContainer key={index} courseTerm={element} 
+                          currTerm={this.props.staticData.term} 
+                          handleChange={this.handleChange} 
+                          checked={this.state.checked}/>);
+
+    return (
+        <div className="dataClass">
+          <div className="dataHeader">
+            <div className="backButton" onClick={this.backButton}/>
+            <h1 className="dataTitle"> {this.props.clsName} </h1>
+          </div>
+          <h2 className="heading-label">
+            Current Class Data
+            <div className="tooltip">
+              <img className="tooltip-image" src={help_icon} alt="Help" />
+              <span className="tooltiptext"> Displays current class data in 
+              a graphical format to make it easy to see how many seats are 
+              available. </span>
+            </div>
+          </h2>
+            {this.props.currentData == null ? 
+              (
+              <div className="loadercontainer" 
+                  style={{
+                    margin: '20px', 
+                    maxHeight: '400px', 
+                    minWidth: '500px'}}>
+                <h1 align="center" className="loadertext"> Loading... </h1>
+                <div className="loader"> </div>
+              </div>
+              ):
+              (
+              <div className="row">
+                {table2}
+              </div>
+              )
+            }
+          <h2 className="heading-label">
+            Historical Data
+            <div className="tooltip">
+              <img className="tooltip-image" src={help_icon} alt="Help" />
+              <span className="tooltiptext"> Historical class data helps you 
+              plan classes based on when they usually fill up. </span>
+            </div>
+          </h2>
+          <div className="row">
+            {table3}
+          </div>
+          {fullTimes}
+
+        </div>
+    );
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    Object.entries(this.props).forEach(([key, val]) =>
+      prevProps[key] !== val && console.log(`Prop '${key}' changed`)
+    );
+    Object.entries(this.state).forEach(([key, val]) =>
+      prevState[key] !== val && console.log(`State '${key}' changed`)
     );
   }
 }
