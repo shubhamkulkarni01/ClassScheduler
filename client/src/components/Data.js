@@ -213,7 +213,7 @@ class Data extends React.Component {
               </tr>
             </thead>
             <tbody>
-              {this.state.fullTimes}
+              {this.props.fullTimes}
             </tbody>
           </table>
           );
@@ -225,6 +225,7 @@ class Data extends React.Component {
     const table3 = this.props.res.map((element, index) => 
       <PrevClassContainer key={index} courseTerm={element} 
                           currTerm={this.props.staticData.term} 
+                          termStartDict={this.props.staticData.termStartDict}
                           handleChange={this.handleChange} 
                           checked={this.state.checked}/>);
 
@@ -414,6 +415,8 @@ function PrevClassContainer(props){
             {props.courseTerm.classes.map((el, index) => 
                   <PrevClass key = {index} cls = {el} 
                     currTerm = {props.currTerm === props.courseTerm.term} 
+                    term = {props.courseTerm.term}
+                    termStart = {props.termStartDict[props.courseTerm.term]}
                     elapsedTime={props.checked} /> )}
           </tbody>
         </table>
@@ -424,7 +427,6 @@ function PrevClassContainer(props){
 
 function PrevClass(props){
   //console.log(props.cls);
-  //console.log(props.currClass);
   var lastFillTime = 0;
   props.cls.discussions.forEach( (disc, index) => {
     //check if discussion not filled yet
@@ -450,22 +452,18 @@ function PrevClass(props){
                    disc.enrollments[i].time : lastFillTime;
   });
 
-  var arbitraryDate = "2019/06/21 16:20:00";
+  //default to second pass for reference pt.
+  var arbitraryDate = props.termStart[1];
+  var flag = 1;
 
-  /* return (
-    <div className="cls-graph-parent"> 
-      <div className="cls-graph-section">
-        { props.cls.lecture }
-      </div>
-      <div className="cls-graph-section">
-        { props.cls.instructor }
-      </div>
-      <div className="cls-graph-text">
-        {(lastFillTime === 0)? <div> No data found </div> :
-        new Date(lastFillTime).toString().substring(4, 21)}
-      </div>
-    </div>
-  ); */
+  console.log(arbitraryDate)
+  console.log(lastFillTime);
+
+  //if the filltime is before second pass, use firstpass as the reference pt.
+  if(lastFillTime < arbitraryDate){
+    arbitraryDate = props.termStart[0];
+    flag = 0;
+  }
 
   return (
     <tr className="prev-class-table"> 
@@ -477,7 +475,8 @@ function PrevClass(props){
         (props.elapsedTime) ? ((new Date(lastFillTime) - 
                   new Date(arbitraryDate))/86400000).toFixed(0) + " days and " + 
                   ((new Date(lastFillTime) - new Date(arbitraryDate))%86400000
-                  /86400000*24).toFixed(0) + " hours": 
+                  /86400000*24).toFixed(0) + " hours since " + 
+                  (flag == 0) ? "first pass" : "second pass": 
         new Date(lastFillTime).toString().substring(4, 21)}
       </td>
     </tr>

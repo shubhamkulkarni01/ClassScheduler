@@ -132,6 +132,7 @@ class App extends React.Component {
         </div>
         <div className = {this.state.submitted ? "data-show" : "data-hide"}>
           <Data res={this.state.res} currentData={this.state.currentData}
+                fullTimes={this.state.fullTimes}
                 clsName={this.state.className} backButton={this.onClick} 
                 staticData={this.state.staticData} key={this.state.className}/>
         </div>
