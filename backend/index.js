@@ -17,7 +17,7 @@ const config = require('./config.js');
 const url = resources.url;
 const header = resources.header;
 
-//getClassData();
+getClassData();
 //setInterval( getClassData, resources.REFRESH_TIMEOUT);
 
 const key = config.key;

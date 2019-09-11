@@ -27,8 +27,8 @@ var MongoClient = mongo.MongoClient;
 var mydb = null;
 connectDb();
 
-//getClassData();
-//setInterval( getClassData, resources.REFRESH_TIMEOUT);
+setTimeout(getClassData, 5000);
+setInterval( getClassData, resources.REFRESH_TIMEOUT);
 
 var cache = {};
 var currTerm = resources.currTerm;
@@ -105,8 +105,8 @@ app.get('/api/cache/:className', function(req, res){
 });
 
 function connectDb(){
-  MongoClient.connect(connectionString, {useNewUrlParser: true}, 
-      (err, database) => { mydb = database; console.log("db connected"); });
+  MongoClient.connect(connectionString, {useNewUrlParser: true, useUnifiedTopology: true}, 
+      (err, database) => { if(err) throw err; mydb = database; console.log("db connected"); });
 }
 
 function disconnectFromDb(){
@@ -118,7 +118,7 @@ function connectAndFind(courseName, res){
   if(mydb === null)
     MongoClient.connect(connectionString, {useNewUrlParser: true}, 
       (err, database) => { if(err) throw err; 
-      //console.log(database); 
+      console.log(database); 
       mydb = database; 
       findFromDb(database, courseName, res); });
   else if(!mydb.isConnected())
@@ -249,6 +249,7 @@ function extractDataFromHtml(courseName, htmlString){
   //console.log();
 
   var course = { name: courseName, term: "Fall 2019", classes: []};
+  course._id = course.name + ' ' + course.term;
 
   //selected[0].childNodes.forEach(item => console.log(item));
 
@@ -334,9 +335,9 @@ function extractDataFromHtml(courseName, htmlString){
 
 function getClassData(){
   console.log(resources.blacklist);
-  var postRequest = resources.postRequest;
+  let postRequest = resources.postRequest;
   for(const key in resources.classList){
-    for(const r in resources.classList[key]){
+    for(const r of resources.classList[key]){
       if(resources.blacklist.includes(key+" "+r))
         continue;
       postRequest.courses = key + " " + r; 

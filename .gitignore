@@ -89,3 +89,5 @@ typings/
 
 # do not include configuration file for security reasons
 config.js
+
+node-course-images
