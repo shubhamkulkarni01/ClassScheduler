@@ -11,13 +11,13 @@ class Detail extends React.Component {
   }
 
   render(){
+   if(this.props.res !== null)
+     var classDisp = this.props.res[0].classes.map((element, index) => 
+        <ClassDisplay data={element} time="1568319229538" />);
+   
     return (
       <div> 
-        {this.props.res !== null ? 
-         this.props.res[0].classes.map((element, index) => 
-          <ClassDisplay data={element} />):
-          null
-        }
+        {this.props.res !== null ? classDisp : null}
       </div>
     )
   }

@@ -29,8 +29,6 @@ class Data extends React.Component {
   }
 
   render(){ 
-    if(this.props.res !== null)
-      console.log(this.props.res);
     if(this.props.res === null )
       return (
         <div className="loadercontainer">
@@ -141,14 +139,21 @@ export function ClassDisplay(data){
       </header>
       <div className="w3-container">
         {data.data.discussions.map((el,index) => 
-                <ClassBar key = {index} data = {el} /> )}
+                <ClassBar key = {index} data = {el} time = {data.time !== null ? data.time : null} /> )}
       </div>
     </div>
   )
 }
 
 export function ClassBar(data){
-  const {remaining, total} = data.data.enrollments[0];
+  if(data.time !== undefined){
+    console.log('data.time is ', data.time);
+    var {remaining, total} = data.data.enrollments.find(e => e.time >= data.time);
+    console.log('calculated by given time', remaining, total);
+  }
+  else{
+    var {remaining, total} = data.data.enrollments[0];
+  }
   var percentage = ((total-remaining)/total*100).toFixed(0);
   if(percentage > 100) 
     percentage = 100;
