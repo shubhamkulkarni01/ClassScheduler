@@ -6,8 +6,11 @@ import {classUrl, cacheUrl, staticUrl} from '../resources/config.js';
 
 import Home from '../components/Home.js';
 import Data from '../components/Data.js';
+import Detail from '../components/Detail.js';
 
 import axios from 'axios';
+  
+export const [HOME, DATA, DETAIL] = [0, 1, 2]
 
 class App extends React.Component {
 
@@ -16,15 +19,14 @@ class App extends React.Component {
     this.state = { 
         url: null,
         cacheUrl:null,
-        submitted: false,
         className: null,
         staticData: null, 
         res: null,
         fullTimes: null,
-        currentData: null 
+        currentData: null, 
+        initialLoad: true, 
+        currentView: HOME
     };
-    this.onClick = this.onClick.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
   }
   
   componentDidMount(){
@@ -108,33 +110,54 @@ class App extends React.Component {
     });
   }
 
-  onSubmit(obj){
+  onClassSelect = (obj) => {
     this.setState({
       submitted: true, 
       url: classUrl+obj.className, 
       cacheUrl: cacheUrl+obj.className,
       className: obj.className,
       res: null,
-      currentData: null
+      currentData: null, 
+      initialLoad: false,
+      currentView: DATA
     });
     this.axiosRetryClass(1000);
   }
 
-  onClick(event){
+  onBackButton = (event) => {
+    //reset the state
     this.setState({submitted: false, res: null, currentData: null, 
+                   currentView: this.state.currentView - 1, 
                    className: null, url: null, cacheUrl: null });
   }
 
+  testDetail = () => {
+    this.setState({ currentView: DETAIL });
+  }
+
   render(){ 
+    console.log(this.state.currentView);
     return (
       <div className = "app-parent">
-        <div className = {this.state.submitted ? "home-hide" : "home-show"}>
-          <Home onSubmit={this.onSubmit} />
+        <div className = {this.state.initialLoad ? "home-init" : 
+                          this.state.currentView === HOME ? 
+                                     "home-show" : "home-hide"}>
+          <Home onSubmit={this.onClassSelect} />
         </div>
-        <div className = {this.state.submitted ? "data-show" : "data-hide"}>
+        <div className = {this.state.initialLoad ? "data-init" : 
+                          this.state.currentView === DATA ? 
+                                     "data-show" : "data-hide"}>
           <Data res={this.state.res} currentData={this.state.currentData}
-                fullTimes={this.state.fullTimes}
-                clsName={this.state.className} backButton={this.onClick} 
+                fullTimes={this.state.fullTimes} testDetail={this.testDetail}
+                clsName={this.state.className} backButton={this.onBackButton} 
+                staticData={this.state.staticData} key={this.state.className}/>
+        </div>
+        <div className = {this.state.initialLoad ? "disp-init" : 
+                          this.state.currentView === DETAIL ? 
+                                     "disp-show" : "disp-hide"}>
+          <Detail res={this.state.res} currentData={this.state.currentData}
+                fullTimes={this.state.fullTimes} 
+                clsname={this.state.className} backButton={this.onBackButton} 
                 staticData={this.state.staticData} key={this.state.className}/>
         </div>
       </div>

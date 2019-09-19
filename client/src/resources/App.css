@@ -249,6 +249,19 @@ th{
   transform: translate(50%, 50%) rotate(45deg);
 }
 
+.fwdButton{
+  width: 50px;
+  height: 50px;
+  transform: rotate(45deg);
+  border-right: 12px solid #ccc;
+  border-bottom: 12px solid #ccc;
+  border-radius: 5px;
+  display: inline-block;
+  float: right;
+  margin: 0px 40px;
+  transform: translate(50%, 50%) rotate(-45deg);
+}
+
 .displayHeader{
   display: flex;
 }
@@ -274,6 +287,12 @@ th{
 
 }
 
+.home-init{
+  left: 0%;
+  width: 100%;
+  position: absolute;
+}
+
 .home-hide{
   animation: scrollOutLeft 0.4s ease 1 forwards;
   left: 0%;
@@ -288,6 +307,12 @@ th{
   position: absolute;
 }
 
+.data-init{
+  left: 100%;
+  width: 100%;
+  position: absolute;
+}
+
 .data-show{
   animation: scrollInLeft 0.4s ease 1 forwards;
   left: 0%;
@@ -296,6 +321,26 @@ th{
 }
 
 .data-hide{
+  animation: scrollOutRight 0.4s ease 1 forwards;
+  position: absolute;
+  width: 100%;
+  left: 0%;
+}
+
+.disp-init{
+  left: 100%;
+  width: 100%;
+  position: absolute;
+}
+
+.disp-show{
+  animation: scrollInLeft 0.4s ease 1 forwards;
+  left: 0%;
+  width: 100%;
+  position: absolute;
+}
+
+.disp-hide{
   animation: scrollOutRight 0.4s ease 1 forwards;
   position: absolute;
   width: 100%;
