@@ -11,7 +11,7 @@ const AWS = require('aws-sdk');
 
 const resources = require('./res.js');
 
-const config = require('./config.js');
+//const config = require('./config.js');
 
 // all query params are stored in res.js
 const url = resources.url;
@@ -20,8 +20,12 @@ const header = resources.header;
 getClassData();
 //setInterval( getClassData, resources.REFRESH_TIMEOUT);
 
+/*
 const key = config.key;
 const secret = config.secret;
+*/
+
+const {key, secret} = process.env;
 
 AWS.config.update({
   "region": "us-east-2",

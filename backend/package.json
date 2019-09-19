@@ -4,9 +4,10 @@
   "description": "Helps UCSD students determine if they will obtain their desired classes",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node index_mongo.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "mongo": "node index_mongo.js"
+    "mongo": "node index_mongo.js",
+    "dynamo": "node index.js"
   },
   "author": "Shubham Kulkarni",
   "license": "ISC",

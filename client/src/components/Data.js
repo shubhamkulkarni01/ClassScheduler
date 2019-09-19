@@ -13,9 +13,9 @@ class Data extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      res: null,
+      /*res: null,
       fullTimes: [],
-      currentData: null,
+      currentData: null,*/
       checked: false, 
       animateOut: false
     };
@@ -192,7 +192,8 @@ class Data extends React.Component {
   } */
 
   render(){ 
-    console.log('rendering');
+    if(this.props.res !== null)
+      console.log(this.props.res);
     if(this.props.res === null )
       return (
         <div className="loadercontainer">
@@ -456,9 +457,6 @@ function PrevClass(props){
   var arbitraryDate = props.termStart[1];
   var flag = 1;
 
-  console.log(arbitraryDate)
-  console.log(lastFillTime);
-
   //if the filltime is before second pass, use firstpass as the reference pt.
   if(lastFillTime < arbitraryDate){
     arbitraryDate = props.termStart[0];
@@ -476,7 +474,7 @@ function PrevClass(props){
                   new Date(arbitraryDate))/86400000).toFixed(0) + " days and " + 
                   ((new Date(lastFillTime) - new Date(arbitraryDate))%86400000
                   /86400000*24).toFixed(0) + " hours since " + 
-                  (flag == 0) ? "first pass" : "second pass": 
+                  (flag === 0) ? "first pass" : "second pass": 
         new Date(lastFillTime).toString().substring(4, 21)}
       </td>
     </tr>

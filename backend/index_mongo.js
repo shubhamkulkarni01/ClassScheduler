@@ -17,9 +17,9 @@ const config = require('./config.js');
 const url = resources.url;
 const header = resources.header;
 
-const user = config.user; 
-const pass = config.pass;
-const host = config.host; 
+const {user, pass, host} = config;
+
+//const {user, pass, host} = process.env;
 
 const connectionString = `mongodb+srv://${user}:${pass}@${host}`;
 
@@ -27,8 +27,8 @@ var MongoClient = mongo.MongoClient;
 var mydb = null;
 connectDb();
 
-setTimeout(getClassData, 5000);
-setInterval( getClassData, resources.REFRESH_TIMEOUT);
+//setTimeout(getClassData, 5000);
+//setInterval( getClassData, resources.REFRESH_TIMEOUT);
 
 var cache = {};
 var currTerm = resources.currTerm;

@@ -121,7 +121,8 @@ class App extends React.Component {
   }
 
   onClick(event){
-    this.setState({submitted: false});
+    this.setState({submitted: false, res: null, currentData: null, 
+                   className: null, url: null, cacheUrl: null });
   }
 
   render(){ 
@@ -139,6 +140,7 @@ class App extends React.Component {
       </div>
     )
     
+    /*
     return (
       <div className = "app-parent">
         <div className = {this.state.submitted ? "home-hide" : "home-show"}>
@@ -167,6 +169,7 @@ class App extends React.Component {
         <Home onSubmit={this.onSubmit}/>
       </div>
     )
+    */
   }
 }
 
