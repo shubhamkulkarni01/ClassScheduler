@@ -15,7 +15,8 @@ class Home extends React.Component{
         dept: 'Select a department', 
         cls: 'Select a class',
         submitted: false,
-        redirect: false
+        redirect: false,
+        courseNumber: 1
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -32,7 +33,7 @@ class Home extends React.Component{
     e.preventDefault();
   }
 
-  handleChange(event){
+  handleChange(courseNumber, event){
     //department selected
     if(event.target.name === 'department')
       this.setState({
@@ -49,20 +50,16 @@ class Home extends React.Component{
   render(){
     return (
       <div className="App">
-        <h1 className="heading-label"> Course Finder </h1>
+        <h1 className="heading-label"> Enrollment Tracker </h1>
         <p className="heading-label-small">
           Figure out if you're gonna get the classes you need ahead of time!
         </p>
         <form className="input-list-form" method="get" 
               onSubmit={this.handleSubmit}>
-          <InputList 
-              list = {this.state.deptlist} 
-              listName = "department" 
-              handleChange = {this.handleChange} 
-              value = {this.state.dept} />
-          <InputList 
-              list= {this.state.dept_classlist} 
-              listName = "class"
+          <Course
+              courseNumber = {this.state.courseNumber}
+              deptlist = {this.state.deptlist}
+              dept_classlist = {this.state.dept_classlist} 
               handleChange = {this.handleChange} 
               value = {this.state.cls} />
 
@@ -76,6 +73,25 @@ class Home extends React.Component{
       </div>
     );
   }
+}
+
+function Course(props){
+
+  return (
+    <div className="course-wrapper">
+      Class {props.courseNumber} 
+      <InputList 
+          list = {props.deptlist} 
+          listName = "department" 
+          handleChange = {(e) => props.handleChange(props.courseNumber, e)} 
+          value = {props.dept} />
+      <InputList 
+          list= {props.dept_classlist} 
+          listName = "class"
+          handleChange = {(e) => props.handleChange(props.courseNumber, e)} 
+          value = {props.cls} />
+    </div>
+  );
 }
 
 function InputList(props){
