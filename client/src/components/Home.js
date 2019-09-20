@@ -18,11 +18,9 @@ class Home extends React.Component{
         redirect: false,
         courseNumber: 1
     };
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  handleSubmit(e){
+  handleSubmit = (e) => {
     if(this.state.dept !== 'Select a department' && 
        this.state.cls !== 'Select a class'){
       this.props.onSubmit({
@@ -33,7 +31,7 @@ class Home extends React.Component{
     e.preventDefault();
   }
 
-  handleChange(courseNumber, event){
+  handleChange = (courseNumber, event) => {
     //department selected
     if(event.target.name === 'department')
       this.setState({
