@@ -9,8 +9,9 @@ class Home extends React.Component{
   constructor(props){
     super(props);
     this.state = { 
-        dept_classlist: [],
-        deptlist: ['Select a department'].concat(Object.keys(classList)), 
+        dept_classlist: ['Select a department first!'],
+        deptlist: [ ...['Select a department'],
+                    ...Object.keys(classList)],
         dept: 'Select a department', 
         cls: 'Select a class',
         submitted: false,
@@ -36,8 +37,8 @@ class Home extends React.Component{
     if(event.target.name === 'department')
       this.setState({
           dept: event.target.value, 
-          dept_classlist: ['Select a class']
-                          .concat(classList[event.target.value]),
+          dept_classlist: [ ...['Select a class'], 
+                            ...classList[event.target.value]], 
           cls: 'Select a class'
       });
     //class selected
@@ -48,8 +49,12 @@ class Home extends React.Component{
   render(){
     return (
       <div className="App">
-        <img src={logo} className="App-logo" alt="logo" />
-        <form method="get" onSubmit={this.handleSubmit}>
+        <h1 className="heading-label"> Course Finder </h1>
+        <p className="heading-label-small">
+          Figure out if you're gonna get the classes you need ahead of time!
+        </p>
+        <form className="input-list-form" method="get" 
+              onSubmit={this.handleSubmit}>
           <InputList 
               list = {this.state.deptlist} 
               listName = "department" 
@@ -61,9 +66,11 @@ class Home extends React.Component{
               handleChange = {this.handleChange} 
               value = {this.state.cls} />
 
-          <button className="homeSelector w3-blue" type="submit"> 
-              Fetch Data 
-          </button>
+          <div className="input-list-wrapper"> 
+            <button className="input-list-button w3-blue" type="submit"> 
+                Fetch Data 
+            </button>
+          </div>
         </form>
 
       </div>
@@ -73,14 +80,19 @@ class Home extends React.Component{
 
 function InputList(props){
   return (
+    <div className = "input-list-wrapper">
       <select 
           value = {props.value} 
-          className="homeSelector" 
+          className="input-list-selector" 
           name={props.listName} 
           onChange = {props.handleChange} >
         { props.list.map( (value, index) => 
               <option key={index} value={value}> {value} </option> ) }
       </select>
+      <label className = "input-list-label"> 
+        {"Select "+props.listName+": "} 
+      </label>
+  </div>
   );
 }
 
