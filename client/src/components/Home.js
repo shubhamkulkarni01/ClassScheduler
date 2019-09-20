@@ -14,38 +14,82 @@ class Home extends React.Component{
                     ...Object.keys(classList)],
         dept: 'Select a department', 
         cls: 'Select a class',
-        submitted: false,
-        redirect: false,
-        courseNumber: 1
+        courseNumber: 1, 
+        selectedCourses: [
+          {
+            dept_classlist: ['Select a department first!'],
+            deptlist: [ ...['Select a department'],
+                        ...Object.keys(classList)],
+            dept: 'Select a department', 
+            cls: 'Select a class',
+          }
+        ]
     };
   }
 
   handleSubmit = (e) => {
-    if(this.state.dept !== 'Select a department' && 
-       this.state.cls !== 'Select a class'){
+    const selectedCourses = [];
+    this.state.selectedCourses.forEach(element => {
+      if(element.dept !== 'Select a department' && 
+          element.cls !== 'Select a class')
+        selectedCourses.push({
+          dept: element.dept,
+          cls: element.cls
+        })
+    });
+
+    if(selectedCourses.length > 0){
       this.props.onSubmit({
-        className: this.state.dept+' '+this.state.cls 
+        selectedCourses
       });
-      this.setState({redirect: true});
     }
     e.preventDefault();
   }
 
   handleChange = (courseNumber, event) => {
     //department selected
-    if(event.target.name === 'department')
-      this.setState({
+    if(event.target.name === 'department'){
+      const selectedCourses = this.state.selectedCourses;
+      const selectedCourseUpdate = {
+        ...selectedCourses[courseNumber-1],
+        dept: event.target.value, 
+        dept_classlist: [ ...['Select a class'], 
+                          ...classList[event.target.value]], 
+        cls: 'Select a class'
+      };
+      selectedCourses[courseNumber-1] = selectedCourseUpdate;
+      this.setState({selectedCourses});
+      
+      /*
+       * this.setState({
           dept: event.target.value, 
           dept_classlist: [ ...['Select a class'], 
                             ...classList[event.target.value]], 
           cls: 'Select a class'
       });
+       */
+    }
     //class selected
-    else 
-      this.setState({cls: event.target.value});
+    else {
+      const selectedCourses = this.state.selectedCourses;
+      const selectedCourseUpdate = {
+        ...selectedCourses[courseNumber-1],
+        cls: event.target.value
+      };
+      selectedCourses[courseNumber-1] = selectedCourseUpdate;
+      this.setState({selectedCourses});
+    }
   }
 
   render(){
+    const selectedCourses = this.state.selectedCourses.map((element, index) => 
+      <Course
+          courseNumber = {index+1}
+          deptlist = {element.deptlist}
+          dept_classlist = {element.dept_classlist} 
+          handleChange = {this.handleChange} 
+          value = {element.cls} />
+        );
     return (
       <div className="App">
         <h1 className="heading-label"> Enrollment Tracker </h1>
@@ -54,12 +98,7 @@ class Home extends React.Component{
         </p>
         <form className="input-list-form" method="get" 
               onSubmit={this.handleSubmit}>
-          <Course
-              courseNumber = {this.state.courseNumber}
-              deptlist = {this.state.deptlist}
-              dept_classlist = {this.state.dept_classlist} 
-              handleChange = {this.handleChange} 
-              value = {this.state.cls} />
+          { selectedCourses }
 
           <div className="input-list-wrapper"> 
             <button className="input-list-button w3-blue" type="submit"> 

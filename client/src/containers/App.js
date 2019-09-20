@@ -111,6 +111,27 @@ class App extends React.Component {
   }
 
   onClassSelect = (obj) => {
+    const selectedCourses = obj.selectedCourses;
+
+    console.log(selectedCourses);
+
+    //until equipped to handle multiple courses
+    const course = selectedCourses[0];
+
+    const className = course.dept+' '+course.cls;
+
+    this.setState({
+      submitted: true, 
+      url: classUrl+className,
+      cacheUrl: cacheUrl+className,
+      className,
+      res: null,
+      currentData: null, 
+      initialLoad: false,
+      currentView: DATA
+    });
+
+    /*
     this.setState({
       submitted: true, 
       url: classUrl+obj.className, 
@@ -121,6 +142,7 @@ class App extends React.Component {
       initialLoad: false,
       currentView: DATA
     });
+    */
     this.axiosRetryClass(1000);
   }
 
