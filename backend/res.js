@@ -78,8 +78,8 @@ postRequest: { selectedTerm: 'FA19',
      _hideFullSec: 'on',
      _showPopup: 'on' }, 
 
-classList: JSON.parse(require('fs').readFileSync("classList.json")),
-blacklist: JSON.parse(require('fs').readFileSync("blacklist.json")),
+classList: JSON.parse(require('fs').readFileSync("./resources/classList.json")),
+blacklist: JSON.parse(require('fs').readFileSync("./resources/blacklist.json")),
 
 currTerm: 'Fall 2019', 
 

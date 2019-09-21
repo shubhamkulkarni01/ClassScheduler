@@ -69,8 +69,8 @@ class Home extends React.Component{
         cls: 'Select a class'
       };
       if(event.target.value !== 'Select a department')
-        event.dept_classlist = [...['Select a class'], 
-                                ...classList[event.target.value]];
+        selectedCourseUpdate.dept_classlist = [...['Select a class'], 
+                                            ...classList[event.target.value]];
       selectedCourses[courseNumber-1] = selectedCourseUpdate;
       this.setState({selectedCourses});
       this.props.cookies.set('courses', this.cookify(selectedCourses));

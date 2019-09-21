@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node index_mongo.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "mongo": "node index_mongo.js",
-    "dynamo": "node index.js"
+    "mongo": "nodemon index_mongo.js",
+    "dynamo": "nodemon index.js"
   },
   "author": "Shubham Kulkarni",
   "license": "ISC",
@@ -15,10 +15,14 @@
     "aws-sdk": "^2.493.0",
     "axios": "^0.19.0",
     "cors": "^2.8.5",
+    "dotenv": "^8.1.0",
     "express": "^4.17.1",
     "jsdoc": "^3.6.2",
     "mongodb": "^3.2.7",
     "mongoose": "^5.6.4",
     "node-html-parser": "^1.1.16"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.2"
   }
 }
