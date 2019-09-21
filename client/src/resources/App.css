@@ -83,6 +83,12 @@
   width: 300px;
 }
 
+@media screen and (max-width: 500px) {
+  .input-list-label {
+    display: none;
+  }
+}
+
 .input-list-button{
   margin: 10px auto;
   padding: 15px 32px;
@@ -118,11 +124,22 @@ th{
   padding: 10px;
 }
 
+@media screen and (max-width: 500px) {
+  .full-times-table{
+    display: none;
+  }
+}
 
 .cls-graph-parent{
   display: flex;
   padding: 10px;
   align-items: center;
+}
+
+@media screen and (max-width: 500px) {
+  .full-times-table{
+    display: none;
+  }
 }
 
 .cls-graph-outline{
@@ -164,9 +181,29 @@ th{
 
 .row{
   display:flex;
-  flex-direction: vertical;
   border: 0px;
   overflow-x: auto;
+}
+
+.row-item{
+  margin: 20px;
+  max-height: 400px;
+  min-width: 500px; 
+  overflow-y: auto;
+}
+
+@media screen and (max-width: 600px) {
+  .row-header h2,h4{
+    display: inline
+
+  }
+
+  .row-body{
+  }
+
+  .row{
+    flex-direction: column;
+  }
 }
 
 .column{
@@ -246,12 +283,13 @@ th{
   justify-content: center;
   flex-direction: column;
   background-color: #282c34;
+
 }
 
 .heading-label{
-  padding: 10px;
+  padding: 1vh;
   color: white;
-  font-size: 45px;
+  font-size: 5vh;
   font-weight: bold;
   margin-top: 0px;
   margin-bottom: 0px;
@@ -273,22 +311,24 @@ th{
 .dataHeader{
   width: stretch;
   text-align: center;
+  height: 10vh;
 }
 
 .dataTitle{
   margin: -5px 0px 0px 0px;
   color: #ccc;
   font-weight: bold;
-  font-size: 75px;
+  font-size: 30px;
+  font-size: 8vh;
   display: inline-block;
 }
 
 .backButton{
-  width: 50px;
-  height: 50px;
+  width: 5vh;
+  height: 5vh;
   transform: rotate(45deg);
-  border-left: 12px solid #ccc;
-  border-bottom: 12px solid #ccc;
+  border-left: 1.2vh solid #ccc;
+  border-bottom: 1.2vh solid #ccc;
   border-radius: 5px;
   display: inline-block;
   float: left;
@@ -341,6 +381,7 @@ th{
   left: 0%;
   width: 100%;
   position: absolute;
+  display: none;
 }
 
 .home-show{
@@ -354,6 +395,7 @@ th{
   left: 100%;
   width: 100%;
   position: absolute;
+  display: none;
 }
 
 .data-show{
@@ -368,12 +410,14 @@ th{
   position: absolute;
   width: 100%;
   left: 0%;
+  display: none;
 }
 
 .disp-init{
   left: 100%;
   width: 100%;
   position: absolute;
+  display: none;
 }
 
 .disp-show{
@@ -388,6 +432,7 @@ th{
   position: absolute;
   width: 100%;
   left: 0%;
+  display: none;
 }
 
 .detail-slider-wrapper{

@@ -1,8 +1,8 @@
 import React from 'react';
 import Switch from 'react-switch';
 
-import '../resources/App.css';
 import '../resources/w3.css';
+import '../resources/App.css';
 
 import help_icon from '../resources/help_icon.png';
 
@@ -40,7 +40,7 @@ class Data extends React.Component {
 
     if(this.props.res.length !== 0)
       var fullTimes = (  
-          <table>
+          <table className="full-times-table">
             <thead>
               <tr key="head">
                 <th> Instructor </th>
@@ -80,12 +80,8 @@ class Data extends React.Component {
           </h2>
             {this.props.currentData == null ? 
               (
-              <div className="loadercontainer" 
-                  style={{
-                    margin: '20px', 
-                    maxHeight: '400px', 
-                    minWidth: '500px'}}>
-                <h1 align="center" className="loadertext"> Loading... </h1>
+              <div className="loadercontainer" >
+               <h1 align="center" className="loadertext"> Loading... </h1>
                 <div className="loader"> </div>
               </div>
               ):
@@ -124,17 +120,12 @@ class Data extends React.Component {
 
 export function ClassDisplay(data){
   return (
-    <div className="w3-card-4 w3-white" 
-        style={{
-          margin: '20px', 
-          maxHeight: '400px', 
-          minWidth: '500px', 
-          overflowY: 'auto'}}>
-      <header className="w3-container w3-blue">
+    <div className="w3-card-4 w3-white row-item" > 
+      <header className="w3-container w3-blue row-header">
         <h2> {data.data.lecture} </h2> 
         <h4> {data.data.instructor} </h4>
       </header>
-      <div className="w3-container">
+      <div className="w3-container row-body">
         {data.data.discussions.map((el,index) => 
                 <ClassBar key = {index} data = {el} 
                           time = {data.time !== null ? data.time : null} /> 
