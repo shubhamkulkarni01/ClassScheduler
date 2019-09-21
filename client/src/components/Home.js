@@ -9,6 +9,7 @@ class Home extends React.Component{
 
   constructor(props){
     super(props);
+    console.log(this.props);
     this.state = { 
         dept_classlist: ['Select a department first!'],
         deptlist: [ ...['Select a department'],
@@ -18,7 +19,7 @@ class Home extends React.Component{
         courseNumber: 1, 
         selectedCourses: [
           {
-            _id: Math.random(),
+            _id: Math.floor(Math.random()*1000),
             dept_classlist: ['Select a department first!'],
             deptlist: [ ...['Select a department'],
                         ...Object.keys(classList)],
@@ -27,6 +28,16 @@ class Home extends React.Component{
           }
         ]
     };
+
+    if(props.initialData){
+      this.state.selectedCourses = props.initialData;
+      this.state.selectedCourses.forEach(element => {
+        element.deptlist = [...['Select a department'],
+                            ...Object.keys(classList)];
+        element.dept_classlist = [...['Select a class'], 
+                                  ...classList[element.dept]];
+      });
+    }
   }
 
   handleSubmit = (e) => {
@@ -61,6 +72,7 @@ class Home extends React.Component{
       };
       selectedCourses[courseNumber-1] = selectedCourseUpdate;
       this.setState({selectedCourses});
+      this.props.cookies.set('courses', this.cookify(selectedCourses));
     }
     //class selected
     else {
@@ -71,13 +83,14 @@ class Home extends React.Component{
       };
       selectedCourses[courseNumber-1] = selectedCourseUpdate;
       this.setState({selectedCourses});
+      this.props.cookies.set('courses', this.cookify(selectedCourses));
     }
   }
 
   addClass = (e) => {
     const selectedCourses = [ ...this.state.selectedCourses, 
                               {
-                                _id: Math.random(),
+                                _id: Math.floor(Math.random()*1000),
                                 dept_classlist: ['Select a department first!'],
                                 deptlist: [ ...['Select a department'],
                                             ...Object.keys(classList)],
@@ -86,6 +99,7 @@ class Home extends React.Component{
                               }]
                               
     this.setState({selectedCourses});
+    this.props.cookies.set('courses', this.cookify(selectedCourses));
   }
 
   deleteClass = (index, e) => {
@@ -94,9 +108,25 @@ class Home extends React.Component{
     selectedCourses.splice(index, 1);
     console.log(selectedCourses);
     this.setState({selectedCourses});
+    this.props.cookies.set('courses', this.cookify(selectedCourses)); 
+  }
+
+  cookify = (array) => {
+    const newArray = [];
+    array.forEach(element => {
+      if(element.dept !== 'Select a department' && 
+          element.cls !== 'Select a class')
+        newArray.push({
+          dept: element.dept,
+          cls: element.cls
+        })
+    });
+    return newArray; 
   }
 
   render(){
+    console.log(this.state.selectedCourses);
+
     const selectedCourses = this.state.selectedCourses.map((element, index) => 
       <Course
           courseNumber = {index+1}

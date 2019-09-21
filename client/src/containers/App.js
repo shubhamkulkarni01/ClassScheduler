@@ -11,6 +11,7 @@ import Detail from '../components/Detail.js';
 import Navigation from '../components/Navigation';
 
 import axios from 'axios';
+    import Cookies from 'universal-cookie';
 
 export const [HOME, DATA, DETAIL] = [0, 1, 2]
 
@@ -30,6 +31,7 @@ class App extends React.Component {
         currentView: HOME, 
         title: 'Class Finder'
     };
+    this.cookies = new Cookies();
   }
   
   componentDidMount(){
@@ -119,8 +121,6 @@ class App extends React.Component {
   onClassSelect = (obj) => {
     const selectedCourses = obj.selectedCourses;
 
-    console.log(selectedCourses);
-
     //until equipped to handle multiple courses
     const course = selectedCourses[0];
 
@@ -162,9 +162,8 @@ class App extends React.Component {
   }
 
   render(){ 
+    const selectedCourses = this.cookies.get('courses');
 
-    console.log(process.env.NODE_ENV);
-    console.log(classUrl, cacheUrl);
     return (
     <div>
       <Navigation title = {this.state.title} index = {this.state.currentView}
@@ -174,7 +173,9 @@ class App extends React.Component {
                           this.state.currentView === HOME ? 
                                      "home-show" : "home-hide"}>
           <Home render={this.state.currentView===HOME}
-                onSubmit={this.onClassSelect} />
+                onSubmit={this.onClassSelect} 
+                initialData={selectedCourses}
+                cookies={this.cookies}/>
         </div>
         <div className = {this.state.initialLoad ? "data-init" : 
                           this.state.currentView === DATA ? 
