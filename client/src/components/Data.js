@@ -14,21 +14,22 @@ class Data extends React.Component {
       checked: false, 
       animateOut: false
     };
-    this.handleChange = this.handleChange.bind(this);
-    this.backButton = this.backButton.bind(this);
   }
 
-  handleChange(checked){
+  handleChange = (checked) => {
     this.setState({checked});
   }
 
 
-  backButton(e){
+  backButton = (e) => {
     this.props.backButton();
     console.log('back button clicked');
   }
 
   render(){ 
+    if(!this.props.render)
+      return <div className="blankDiv" />
+
     if(this.props.res === null )
       return (
         <div className="loadercontainer">
@@ -63,15 +64,11 @@ class Data extends React.Component {
                           currTerm={this.props.staticData.term} 
                           termStartDict={this.props.staticData.termStartDict}
                           handleChange={this.handleChange} 
-                          checked={this.state.checked}/>);
+                          checked={this.state.checked}
+                          onClick={this.props.testDetail}/>);
 
     return (
         <div className="dataClass">
-          <div className="dataHeader">
-            <div className="backButton" onClick={this.backButton}/>
-            <h1 className="dataTitle"> {this.props.clsName} </h1>
-            <div className="fwdButton" onClick={this.props.testDetail}/>
-          </div>
           <h2 className="heading-label">
             Current Class Data
             <div className="tooltip">
@@ -139,20 +136,26 @@ export function ClassDisplay(data){
       </header>
       <div className="w3-container">
         {data.data.discussions.map((el,index) => 
-                <ClassBar key = {index} data = {el} time = {data.time !== null ? data.time : null} /> )}
+                <ClassBar key = {index} data = {el} 
+                          time = {data.time !== null ? data.time : null} /> 
+        )}
       </div>
     </div>
   )
 }
 
 export function ClassBar(data){
+  var remaining, total;
   if(data.time !== undefined){
-    console.log('data.time is ', data.time);
-    var {remaining, total} = data.data.enrollments.find(e => e.time >= data.time);
-    console.log('calculated by given time', remaining, total);
+    var tempVar = data.data.enrollments.find(e => e.time >= data.time);
+    if(tempVar === undefined || tempVar === null)
+      tempVar = data.data.enrollments[data.data.enrollments.length-1];
+    remaining = tempVar.remaining;
+    total = tempVar.total;
   }
   else{
-    var {remaining, total} = data.data.enrollments[0];
+    remaining = data.data.enrollments[0].remaining;
+    total = data.data.enrollments[0].total;
   }
   var percentage = ((total-remaining)/total*100).toFixed(0);
   if(percentage > 100) 
@@ -227,9 +230,11 @@ function PrevClassContainer(props){
           margin: '20px', 
           maxHeight: '400px', 
           minWidth: '550px', 
-          overflowY: 'auto'}}>
+          overflowY: 'auto'}} >
       <header className="w3-container w3-blue displayHeader">
-        <h1> {props.courseTerm.term} </h1> 
+        <h1 onClick={() => props.onClick(props.courseTerm.term)}> 
+          {props.courseTerm.term} 
+        </h1> 
 	<div className="toggle-switch-container">
           <div className="tooltip top-tooltip toggle-switch-text">
             Exact Time

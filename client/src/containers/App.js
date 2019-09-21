@@ -8,8 +8,10 @@ import Home from '../components/Home.js';
 import Data from '../components/Data.js';
 import Detail from '../components/Detail.js';
 
+import Navigation from '../components/Navigation';
+
 import axios from 'axios';
-  
+
 export const [HOME, DATA, DETAIL] = [0, 1, 2]
 
 class App extends React.Component {
@@ -25,7 +27,8 @@ class App extends React.Component {
         fullTimes: null,
         currentData: null, 
         initialLoad: true, 
-        currentView: HOME
+        currentView: HOME, 
+        title: 'Class Finder'
     };
   }
   
@@ -34,17 +37,19 @@ class App extends React.Component {
   }
 
   axiosRetryStaticData(milliseconds){
-    axios.get(staticUrl).then( result => {
-      this.setState({staticData: result.data});
-    }).catch( e => {
-      console.log(`retrying in ${milliseconds} milliseconds`);
-      setTimeout(
-          (() => this.axiosRetryStaticData(milliseconds+500)), milliseconds
-      );
+    axios.get(staticUrl)
+      .then( result => {
+        this.setState({staticData: result.data});
+      }).catch( e => {
+        console.log(`retrying in ${milliseconds} milliseconds`);
+        setTimeout(
+            (() => this.axiosRetryStaticData(milliseconds+500)), milliseconds
+        );
     });
   }
 
   axiosRetryClass(milliseconds){
+    console.log(this.state.url);
     axios.get(this.state.url)
       .then( result => {
         const times = this.createFullTimesTable(result);
@@ -99,14 +104,15 @@ class App extends React.Component {
     return times;
   }
   
-  axiosRetryCache(milliseconds){
-    axios.get(this.state.cacheUrl).then(cache => 
-      this.setState({ currentData: cache.data })
-    ).catch(e => { 
-      if(milliseconds > 5000)
-        this.axiosRetryClass(1000);
-      console.log(`retrying in ${milliseconds} milliseconds`);
-      setTimeout((() => this.axiosRetryCache(milliseconds+500)), milliseconds);
+  axiosRetryCache(millis){
+    axios.get(this.state.cacheUrl)
+      .then(cache => 
+        this.setState({ currentData: cache.data })
+      ).catch(e => { 
+        if(millis> 5000)
+          this.axiosRetryClass(1000);
+        console.log(`retrying in ${millis} milliseconds`);
+        setTimeout((() => this.axiosRetryCache(millis+500)), millis);
     });
   }
 
@@ -121,54 +127,60 @@ class App extends React.Component {
     const className = course.dept+' '+course.cls;
 
     this.setState({
-      submitted: true, 
       url: classUrl+className,
       cacheUrl: cacheUrl+className,
       className,
       res: null,
       currentData: null, 
       initialLoad: false,
-      currentView: DATA
+      currentView: DATA,
+      title: className, 
+      detailData: null,
+      detailTerm: null,
     });
 
-    /*
-    this.setState({
-      submitted: true, 
-      url: classUrl+obj.className, 
-      cacheUrl: cacheUrl+obj.className,
-      className: obj.className,
-      res: null,
-      currentData: null, 
-      initialLoad: false,
-      currentView: DATA
-    });
-    */
     this.axiosRetryClass(1000);
   }
 
   onBackButton = (event) => {
     //reset the state
-    this.setState({submitted: false, res: null, currentData: null, 
-                   currentView: this.state.currentView - 1, 
-                   className: null, url: null, cacheUrl: null });
+    var newState = {currentView: this.state.currentView - 1}
+    if(this.state.currentView - 1 === HOME)
+      newState = {title: 'Class Finder', 
+                  currentView: this.state.currentView - 1,
+                  res: null, currentData: null, 
+                  className: null, url: null, cacheUrl: null};
+    this.setState( newState );
   }
 
-  testDetail = () => {
-    this.setState({ currentView: DETAIL });
+  testDetail = (term) => {
+    console.log(term);
+    this.setState({ currentView: DETAIL, detailTerm: term, 
+                    detailData: this.state.res.find(e => e.term === term),
+                    title: this.state.className + ' ' + term});
+    console.log(this.state);
   }
 
   render(){ 
+
+    console.log(process.env.NODE_ENV);
+    console.log(classUrl, cacheUrl);
     return (
+    <div>
+      <Navigation title = {this.state.title} index = {this.state.currentView}
+                  backButton = {this.onBackButton} />
       <div className = "app-parent">
         <div className = {this.state.initialLoad ? "home-init" : 
                           this.state.currentView === HOME ? 
                                      "home-show" : "home-hide"}>
-          <Home onSubmit={this.onClassSelect} />
+          <Home render={this.state.currentView===HOME}
+                onSubmit={this.onClassSelect} />
         </div>
         <div className = {this.state.initialLoad ? "data-init" : 
                           this.state.currentView === DATA ? 
                                      "data-show" : "data-hide"}>
-          <Data res={this.state.res} currentData={this.state.currentData}
+          <Data render={this.state.currentView===DATA}
+                res={this.state.res} currentData={this.state.currentData}
                 fullTimes={this.state.fullTimes} testDetail={this.testDetail}
                 clsName={this.state.className} backButton={this.onBackButton} 
                 staticData={this.state.staticData} key={this.state.className}/>
@@ -176,44 +188,14 @@ class App extends React.Component {
         <div className = {this.state.initialLoad ? "disp-init" : 
                           this.state.currentView === DETAIL ? 
                                      "disp-show" : "disp-hide"}>
-          <Detail res={this.state.res} currentData={this.state.currentData}
-                fullTimes={this.state.fullTimes} 
-                clsname={this.state.className} backButton={this.onBackButton} 
+          <Detail render={this.state.currentView===DETAIL}
+                res={this.state.detailData} term={this.state.detailTerm} 
+                clsname={this.state.className} 
                 staticData={this.state.staticData} key={this.state.className}/>
         </div>
       </div>
+    </div>
     )
-    
-    /*
-    return (
-      <div className = "app-parent">
-        <div className = {this.state.submitted ? "home-hide" : "home-show"}>
-          <Home onSubmit={this.onSubmit} />
-        </div>
-        <div className = {this.state.submitted ? "data-show" : "data-hide"}>
-          <Data url={this.state.url} cacheUrl={this.state.cacheUrl} 
-                clsName={this.state.className} backButton={this.onClick} 
-                staticData={this.state.staticData} key={this.state.className}/>
-        </div>
-      </div>
-    )
-
-
-    if(this.state.submitted === true)
-      return ( 
-        <div> 
-          <Data url={this.state.url} cacheUrl={this.state.cacheUrl} 
-                clsName={this.state.className} backButton={this.onClick} 
-                staticData={this.state.staticData} /> 
-        </div>
-      )
-    
-    return (
-      <div className = "home-show">
-        <Home onSubmit={this.onSubmit}/>
-      </div>
-    )
-    */
   }
 }
 

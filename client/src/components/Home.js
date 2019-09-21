@@ -1,5 +1,4 @@
 import React from 'react';
-import logo from '../resources/logo.svg';
 import '../resources/App.css';
 
 import classList from '../resources/classList.json';
@@ -88,7 +87,8 @@ class Home extends React.Component{
           deptlist = {element.deptlist}
           dept_classlist = {element.dept_classlist} 
           handleChange = {this.handleChange} 
-          value = {element.cls} />
+          value = {element.cls}
+          key = {index} />
         );
     return (
       <div className="App">

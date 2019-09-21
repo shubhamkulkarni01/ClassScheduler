@@ -43,11 +43,6 @@ app.use(cors());
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
-//add the router
-app.listen( process.env.PORT || 5000 );
-
-console.log("Running at Port 3000");
-
 /* used to deal with get requests to the API specifying class name */
 app.get('/api/class/:className', function(req, res) {
           
@@ -104,9 +99,20 @@ app.get('/api/cache/:className', function(req, res){
       res.status(404).send('cache not found, try again later');
 });
 
+app.use(express.static(path.join(__dirname, 'build')));
+
+app.get('/*', function(req, res) {
+  console.log('accessing the react app');
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
+
 function connectDb(){
-  MongoClient.connect(connectionString, {useNewUrlParser: true, useUnifiedTopology: true}, 
-      (err, database) => { if(err) throw err; mydb = database; console.log("db connected"); });
+  const options = {useNewUrlParser: true, useUnifiedTopology: true};
+
+  MongoClient.connect(connectionString, options, (err, database) => { 
+      if(err) throw err; mydb = database; console.log("db connected"); 
+  });
 }
 
 function disconnectFromDb(){
@@ -355,3 +361,8 @@ function getClassData(){
     }
   }
 }
+
+//add the router
+//const port = Math.floor(Math.random() * Math.floor(10000))+1000;
+const port = 5000
+app.listen( port, () => console.log('listening on port ' + port));

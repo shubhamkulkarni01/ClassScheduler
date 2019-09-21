@@ -18,7 +18,11 @@ class Navigation extends React.Component {
 
   render(){ 
     return ( 
-      <button onClick={this.props.onClick} className="back"> Go Back </button>
+      <div className="dataHeader">
+        {this.props.index !== 0 
+            && <div className="backButton" onClick={this.props.backButton}/>}
+        <h1 className="dataTitle"> {this.props.title} </h1>
+      </div>
     )
   }
 }
