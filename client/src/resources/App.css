@@ -62,17 +62,16 @@
   padding: 2vh 1vw;
   animation: expand 1 1s ease-in;
   max-width: 95vw;
-  margin: auto;
+  margin: 10px auto;
+}
+.course-wrapper *{
+  animation: fade-in 0.5s 1 1s ease-out backwards;
 }
 
 .course-delete-icon{
   float: right;
   width: 4vh;
   height: 4vh;
-}
-
-.course-wrapper *{
-  animation: fade-in 1s 1 1s linear backwards;
 }
 
 
@@ -593,8 +592,8 @@ th{
 }
 
 @keyframes expand {
-  0% {width: 0px; }
-  100% {width: 100%; }
+  0% {width: 0px; left: 50%; }
+  100% {width: 100%; left: 0%; }
 }
 
 @keyframes fade-in {

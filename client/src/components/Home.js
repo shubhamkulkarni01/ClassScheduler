@@ -29,7 +29,7 @@ class Home extends React.Component{
         ]
     };
 
-    if(props.initialData){
+    if(props.initialData && props.initialData.length > 0){
       this.state.selectedCourses = props.initialData;
       this.state.selectedCourses.forEach(element => {
         element.deptlist = [...['Select a department'],
@@ -66,10 +66,11 @@ class Home extends React.Component{
       const selectedCourseUpdate = {
         ...selectedCourses[courseNumber-1],
         dept: event.target.value, 
-        dept_classlist: [ ...['Select a class'], 
-                          ...classList[event.target.value]], 
         cls: 'Select a class'
       };
+      if(event.target.value !== 'Select a department')
+        event.dept_classlist = [...['Select a class'], 
+                                ...classList[event.target.value]];
       selectedCourses[courseNumber-1] = selectedCourseUpdate;
       this.setState({selectedCourses});
       this.props.cookies.set('courses', this.cookify(selectedCourses));
@@ -114,8 +115,7 @@ class Home extends React.Component{
   cookify = (array) => {
     const newArray = [];
     array.forEach(element => {
-      if(element.dept !== 'Select a department' && 
-          element.cls !== 'Select a class')
+      if(element.dept !== 'Select a department')
         newArray.push({
           dept: element.dept,
           cls: element.cls
