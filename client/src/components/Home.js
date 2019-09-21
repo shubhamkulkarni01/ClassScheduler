@@ -3,6 +3,8 @@ import '../resources/App.css';
 
 import classList from '../resources/classList.json';
 
+import delete_icon from '../resources/delete_icon.png';
+
 class Home extends React.Component{
 
   constructor(props){
@@ -16,6 +18,7 @@ class Home extends React.Component{
         courseNumber: 1, 
         selectedCourses: [
           {
+            _id: Math.random(),
             dept_classlist: ['Select a department first!'],
             deptlist: [ ...['Select a department'],
                         ...Object.keys(classList)],
@@ -58,15 +61,6 @@ class Home extends React.Component{
       };
       selectedCourses[courseNumber-1] = selectedCourseUpdate;
       this.setState({selectedCourses});
-      
-      /*
-       * this.setState({
-          dept: event.target.value, 
-          dept_classlist: [ ...['Select a class'], 
-                            ...classList[event.target.value]], 
-          cls: 'Select a class'
-      });
-       */
     }
     //class selected
     else {
@@ -80,14 +74,38 @@ class Home extends React.Component{
     }
   }
 
+  addClass = (e) => {
+    const selectedCourses = [ ...this.state.selectedCourses, 
+                              {
+                                _id: Math.random(),
+                                dept_classlist: ['Select a department first!'],
+                                deptlist: [ ...['Select a department'],
+                                            ...Object.keys(classList)],
+                                dept: 'Select a department', 
+                                cls: 'Select a class',
+                              }]
+                              
+    this.setState({selectedCourses});
+  }
+
+  deleteClass = (index, e) => {
+    const selectedCourses = [ ...this.state.selectedCourses ];
+    console.log(index);
+    selectedCourses.splice(index, 1);
+    console.log(selectedCourses);
+    this.setState({selectedCourses});
+  }
+
   render(){
     const selectedCourses = this.state.selectedCourses.map((element, index) => 
       <Course
           courseNumber = {index+1}
+          dept = {element.dept}
+          cls = {element.cls}
           deptlist = {element.deptlist}
           dept_classlist = {element.dept_classlist} 
           handleChange = {this.handleChange} 
-          value = {element.cls}
+          deleteClass = {this.deleteClass}
           key = {index} />
         );
     return (
@@ -98,13 +116,20 @@ class Home extends React.Component{
         </p>
         <form className="input-list-form" method="get" 
               onSubmit={this.handleSubmit}>
-          { selectedCourses }
+          <div className = "input-list-courses">
+            { selectedCourses }
+          </div>
 
           <div className="input-list-wrapper"> 
-            <button className="input-list-button w3-blue" type="submit"> 
-                Fetch Data 
+            <button className="input-list-button w3-green" type="submit"> 
+              Find my classes
+            </button>
+            <button className="input-list-button w3-blue" type="button"
+                    onClick={this.addClass}> 
+               Add a course 
             </button>
           </div>
+
         </form>
 
       </div>
@@ -116,7 +141,11 @@ function Course(props){
 
   return (
     <div className="course-wrapper">
-      Class {props.courseNumber} 
+      <div className="course-name">
+        Class {props.courseNumber} 
+        <img className="course-delete-icon" src={delete_icon} 
+             onClick={(e) => props.deleteClass(props.courseNumber - 1, e)}/>
+      </div>
       <InputList 
           list = {props.deptlist} 
           listName = "department" 

@@ -216,12 +216,7 @@ function PrevClassContainer(props){
     /* {props.courseTerm.classes.filter(cls => cls.term !== props.currTerm)
        .map((el, index) => <PrevClass key = {index} cls = {el} /> )} */
   return (
-    <div className="w3-card-4 w3-white" 
-        style={{
-          margin: '20px', 
-          maxHeight: '400px', 
-          minWidth: '550px', 
-          overflowY: 'auto'}} >
+    <div className="w3-card-4 w3-white row-item-2" >
       <header className="w3-container w3-blue displayHeader">
         <h1 onClick={() => props.onClick(props.courseTerm.term)}> 
           {props.courseTerm.term} 
@@ -229,20 +224,20 @@ function PrevClassContainer(props){
 	<div className="toggle-switch-container">
           <div className="tooltip top-tooltip toggle-switch-text">
             Exact Time
-            <span className="tooltiptext"> Exact time will show when the class 
-            filled up according to a clock (date and time). </span>
+            <span className="tooltiptext-exact"> Exact time will show when 
+            the class filled up according to a clock (date and time). </span>
           </div>
           <Switch onChange={props.handleChange} checked={props.checked} 
                   className="toggle-switch" onColor={"#888"} 
                   uncheckedIcon={false} checkedIcon={false} />
           <div className="tooltip top-tooltip toggle-switch-text">
             Elapsed Time
-            <span className="tooltiptext"> Elapsed time will show when the class 
-            filled up relative to the start of first pass. </span>
+            <span className="tooltiptext-elapsed"> Elapsed time will show when 
+              the class filled up relative to the start of first pass. </span>
           </div>
 	</div>
       </header>
-      <div className="w3-container" style={{margin:'10px'}}>
+      <div className="w3-container">
         <table className="prev-class-table">
           <thead>
             <tr key="head" className="prev-class-table">
