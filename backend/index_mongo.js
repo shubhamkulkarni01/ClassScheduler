@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const app = express();
 const cors = require('cors');
@@ -10,7 +12,6 @@ const qs = require('qs');
 const mongo = require('mongodb');
 
 const resources = require('./res.js');
-
 
 // all query params are stored in res.js
 const url = resources.url;
