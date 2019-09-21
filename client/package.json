@@ -12,7 +12,8 @@
     "react-scripts": "3.0.1",
     "react-switch": "^5.0.1",
     "recharts": "^1.7.1",
-    "typescript": "^3.5.3"
+    "typescript": "^3.5.3",
+    "universal-cookie": "^4.0.2"
   },
   "scripts": {
     "start": "react-scripts start",
