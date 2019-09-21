@@ -11,15 +11,15 @@ const mongo = require('mongodb');
 
 const resources = require('./res.js');
 
-const config = require('./config.js');
 
 // all query params are stored in res.js
 const url = resources.url;
 const header = resources.header;
 
-const {user, pass, host} = config;
+//const config = require('./config.js');
+//const {user, pass, host} = config;
 
-//const {user, pass, host} = process.env;
+const {user, pass, host} = process.env;
 
 const connectionString = `mongodb+srv://${user}:${pass}@${host}`;
 
@@ -364,5 +364,5 @@ function getClassData(){
 
 //add the router
 //const port = Math.floor(Math.random() * Math.floor(10000))+1000;
-const port = 5000
+const port = process.env.PORT || 5000;
 app.listen( port, () => console.log('listening on port ' + port));
