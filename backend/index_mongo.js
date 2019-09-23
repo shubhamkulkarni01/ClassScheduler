@@ -100,7 +100,7 @@ app.get('/api/cache/:className', function(req, res){
       res.status(404).send('cache not found, try again later');
 });
 
-app.use(express.static(path.join(__dirname, 'build')));
+//app.use(express.static(path.join(__dirname, 'build')));
 
 app.get('/*', function(req, res) {
   console.log('accessing the react app');
@@ -217,12 +217,12 @@ function extractDataFromHtml(courseName, htmlString){
   var html = parser.parse(htmlString);
   var selected = html.querySelectorAll(".sectxt");
 
-  /*
   selected.forEach(item => { console.log(item.childNodes[7].toString()); 
         console.log(item.childNodes[7].toString().indexOf("Lecture"));
         console.log();
   });
-  console.log(selected[0].childNodes.forEach(item => console.log(item)));
+  console.log(selected[selected.length - 3].childNodes.forEach(item => console.log(item)));
+  /*
 
   //finding whether discussion or lecture 
   console.log(selected[0].childNodes[7].toString().indexOf("Lecture"));
@@ -263,7 +263,11 @@ function extractDataFromHtml(courseName, htmlString){
   /* does not work for classes with only lecture, needs to be reworked. 
    * test cases can include CENG 100, WCWP 100. */
 
+  debugger;
   selected.forEach(row => {
+      //cancelled classes
+      if(row.childNodes[11].childNodes[0].rawText == 'Cancelled')
+        return;
       //lecture row
       if(row.childNodes[7].toString().indexOf("Lecture") != -1){
         var lecture = { 
