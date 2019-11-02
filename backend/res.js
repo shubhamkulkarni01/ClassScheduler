@@ -4,7 +4,8 @@ url: "https://act.ucsd.edu/scheduleOfClasses/scheduleOfClassesStudentResult.htm"
 
 header: { headers: { "Content-Type": "application/x-www-form-urlencoded" }}, 
 
-postRequest: { selectedTerm: 'FA19',
+postRequest: { 
+  selectedTerm: 'FA19',
      xsoc_term: '',
      loggedIn: 'false',
      tabNum: 'tabs-crs',
@@ -81,7 +82,16 @@ postRequest: { selectedTerm: 'FA19',
 classList: JSON.parse(require('fs').readFileSync("./resources/classList.json")),
 blacklist: JSON.parse(require('fs').readFileSync("./resources/blacklist.json")),
 
+termDefinitions: [
+  {term: 'Fall 20', prefix: 'FA'},
+  {term: 'Winter 20', prefix: 'WI'},
+  {term: 'Spring 20', prefix: 'SP'}
+],
+
+currTermIndex: 0,
+currYear: '19',
 currTerm: 'Fall 2019', 
+currTermPrefix: 'FA19',
 
 REFRESH_TIMEOUT: 900000
 }

@@ -64,7 +64,9 @@ class App extends React.Component {
         this.axiosRetryCache(1000);
       }).catch(e => { 
         console.log(`retrying in ${milliseconds} milliseconds`);
-        setTimeout((() => this.axiosRetryClass(milliseconds+500)), milliseconds)
+        if(this.state.currentView === DATA)
+          setTimeout((() => this.axiosRetryClass(milliseconds+500)), 
+                     milliseconds)
     });
   
   }
@@ -114,7 +116,8 @@ class App extends React.Component {
         if(millis> 5000)
           this.axiosRetryClass(1000);
         console.log(`retrying in ${millis} milliseconds`);
-        setTimeout((() => this.axiosRetryCache(millis+500)), millis);
+        if(this.state.currentView === DATA)
+          setTimeout((() => this.axiosRetryCache(millis+500)), millis);
     });
   }
 

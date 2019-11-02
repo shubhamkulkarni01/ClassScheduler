@@ -33,6 +33,8 @@ connectDb();
 
 var cache = {};
 var currTerm = resources.currTerm;
+currTerm = resources.termDefinitions[resources.currTermIndex].term + 
+           resources.currYear;
 
 var blacklist = [];
 
@@ -57,6 +59,11 @@ app.get('/api/class/:className', function(req, res) {
     postRequest.courses = req.params.className;
     if(/^[^A-z]$/i.test(postRequest.courses[postRequest.courses.length-1]))
       postRequest.courses += "-A";
+
+    //set postrequest selectedterm field dynamically
+    postRequest.selectedTerm = 
+                  resources.termDefinitions[resources.currTermIndex].prefix +
+                  resources.currYear;
 
     connectAndFind(req.params.className, res);
     console.log("returning database object");
@@ -100,7 +107,7 @@ app.get('/api/cache/:className', function(req, res){
       res.status(404).send('cache not found, try again later');
 });
 
-//app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(path.join(__dirname, 'build')));
 
 app.get('/*', function(req, res) {
   console.log('accessing the react app');
@@ -217,12 +224,12 @@ function extractDataFromHtml(courseName, htmlString){
   var html = parser.parse(htmlString);
   var selected = html.querySelectorAll(".sectxt");
 
+  /*
   selected.forEach(item => { console.log(item.childNodes[7].toString()); 
         console.log(item.childNodes[7].toString().indexOf("Lecture"));
         console.log();
   });
   console.log(selected[selected.length - 3].childNodes.forEach(item => console.log(item)));
-  /*
 
   //finding whether discussion or lecture 
   console.log(selected[0].childNodes[7].toString().indexOf("Lecture"));

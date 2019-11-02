@@ -7,7 +7,8 @@
     "start": "node index_mongo.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "mongo": "nodemon index_mongo.js",
-    "dynamo": "nodemon index.js"
+    "dynamo": "nodemon index.js",
+    "pm2": "pm2 start index_mongo.js"
   },
   "author": "Shubham Kulkarni",
   "license": "ISC",
