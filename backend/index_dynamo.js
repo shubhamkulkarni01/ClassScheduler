@@ -1,40 +1,45 @@
 require('dotenv').config();
 
-const express = require('express');
+const express = require("express");
 const app = express();
+const path = require("path");
+
+const axios = require("axios");
 const cors = require('cors');
-const path = require('path');
+const parser = require("node-html-parser");
+const qs = require("qs");
 
-const axios = require('axios');
-const parser = require('node-html-parser');
-const qs = require('qs');
-
-const mongo = require('mongodb');
+const AWS = require('aws-sdk');
 
 const resources = require('./res.js');
+
+//const config = require('./config.js');
 
 // all query params are stored in res.js
 const url = resources.url;
 const header = resources.header;
 
-//const config = require('./config.js');
-//const {user, pass, host} = config;
-
-const {user, pass, host} = process.env;
-
-const connectionString = `mongodb+srv://${user}:${pass}@${host}`;
-
-var MongoClient = mongo.MongoClient;
-var mydb = null;
-connectDb();
-
-//setTimeout(getClassData, 5000);
+getClassData();
 //setInterval( getClassData, resources.REFRESH_TIMEOUT);
+
+/*
+const key = config.key;
+const secret = config.secret;
+*/
+
+const {key, secret} = process.env;
+
+AWS.config.update({
+  "region": "us-east-2",
+  "endpoint": "https://dynamodb.us-east-2.amazonaws.com",
+  "accessKeyId": key,
+  "secretAccessKey": secret
+  });
+
+const docClient = new AWS.DynamoDB.DocumentClient();
 
 var cache = {};
 var currTerm = resources.currTerm;
-currTerm = resources.termDefinitions[resources.currTermIndex].term + 
-           resources.currYear;
 
 var blacklist = [];
 
@@ -45,6 +50,11 @@ console.log("server init complete");
 app.use(cors());
 app.use(express.static("public"));
 app.set("view engine", "ejs");
+
+//add the router
+app.listen( process.env.PORT || 5000 );
+
+console.log("Running at Port 3000");
 
 /* used to deal with get requests to the API specifying class name */
 app.get('/api/class/:className', function(req, res) {
@@ -60,18 +70,10 @@ app.get('/api/class/:className', function(req, res) {
     if(/^[^A-z]$/i.test(postRequest.courses[postRequest.courses.length-1]))
       postRequest.courses += "-A";
 
-    //set postrequest selectedterm field dynamically
-    postRequest.selectedTerm = 
-                  resources.termDefinitions[resources.currTermIndex].prefix +
-                  resources.currYear;
-
-    connectAndFind(req.params.className, res);
+    findFromDb(req.params.className, res);
     console.log("returning database object");
     console.log(new Date().getTime() - res.timeOfArrival);
-
-    //console.log("cleaning cache");
-    //cache[req.params.className] = null;
-
+    
     console.log("executing axios request for UCSD schedule of classes");
     axios.post(url, qs.stringify(postRequest), header)
     .then(response => { 
@@ -82,7 +84,7 @@ app.get('/api/class/:className', function(req, res) {
         console.log("processed data");
         console.log(new Date().getTime() - res.timeOfArrival);
         // add the current course info to database
-        connectAndAdd(currCourse);
+        addToDb(currCourse);
         console.log("added to db");
         console.log(new Date().getTime() - res.timeOfArrival);
         
@@ -100,77 +102,64 @@ app.get('/api/cache/:className', function(req, res){
     console.log("GET request arrived: /api/cache");
     console.log("course name: " + req.params.className);
     console.log(cache);
+    //console.log(cache);
     //res.json(blacklist);
-    if(req.params.className in cache && cache[req.params.className] !== null)
+    if(req.params.className in cache)
       res.json(cache[req.params.className]);    
     else
       res.status(404).send('cache not found, try again later');
 });
 
-app.use(express.static(path.join(__dirname, 'build')));
+function findFromDb(courseName, res){
+  /*
+  var params = { 
+    TableName: "classes", 
+    Key: {
+      "name": courseName, 
+      "term": currTerm 
+    }
+  };
+  */
+  var params = { 
+    TableName: "classes", 
+    KeyConditionExpression: "#nm = :n",
+    ExpressionAttributeNames: {
+      "#nm": "name"
+    },
+    ExpressionAttributeValues: {
+      ":n": courseName, 
+    }
+  };
 
-app.get('/*', function(req, res) {
-  console.log('accessing the react app');
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
+  console.log(params);
 
-
-function connectDb(){
-  const options = {useNewUrlParser: true, useUnifiedTopology: true};
-
-  MongoClient.connect(connectionString, options, (err, database) => { 
-      if(err) throw err; mydb = database; console.log("db connected"); 
-  });
+  docClient.query(params, (err, result) => res.json(result.Items));
 }
 
-function disconnectFromDb(){
-  this.db.close();
-  this.db = null;
-}
+function addToDb(currCourse){
+    var params = { 
+      TableName: "classes", 
+       Key: {
+         "name": currCourse.name, 
+         "term": currTerm 
+       }
+    };
 
-function connectAndFind(courseName, res){
-  if(mydb === null)
-    MongoClient.connect(connectionString, {useNewUrlParser: true}, 
-      (err, database) => { if(err) throw err; 
-      console.log(database); 
-      mydb = database; 
-      findFromDb(database, courseName, res); });
-  else if(!mydb.isConnected())
-    db.connect().then( r => { mydb = r; findFromDb(r, courseName, res); });
-  else
-    findFromDb(mydb, courseName, res); 
-}
+    var object = {
+      TableName: 'classes',
+      Item: {}
+    }
 
-function connectAndAdd(currCourse){
-  if(mydb === null)
-    MongoClient.connect(connectionString, {useNewUrlParser: true}, 
-      (err, database) => { mydb = database; addToDb(mydb, currCourse); });
-  else if(!mydb.isConnected())
-    mydb.connect().then( r => { mydb = r; addToDb(mydb, courseName); });
-  else
-    addToDb(mydb, currCourse); 
-}
+    docClient.get(params, (err, result) => {
+      if(err) throw err;
 
-function findFromDb(db, courseName, res){
-  var dbo = db.db("mydb");
-  var classes = dbo.collection("classes");
-  var query = { name: courseName };
-
-  classes.find(query).toArray( (err, result) => res.json(result) );
-}
-
-function addToDb(db, currCourse){
-    var dbo = db.db("mydb");
-    var classes = dbo.collection("classes");
-    var query = { name: currCourse.name, term: currCourse.term };
-
-    dbo.collection("classes").findOne(query).then( dbCourse => { 
-      if(dbCourse){
+      if(result.Item !== undefined){ 
+        var dbCourse = result.Item;
         //classes loop, get each lecture
         for(var i = 0; i < dbCourse.classes.length; i++){
           if(dbCourse.classes[i].lecture !== currCourse.classes[i].lecture || 
-                dbCourse.classes[i].discussions[0] === undefined || 
-                currCourse.classes[i].discussions[0] === undefined)
+                dbCourse.classes[i].discussions === undefined || 
+                currCourse.classes[i].discussions === undefined)
             continue;
           //discussions loop, get each section
           for(var j = 0; j < dbCourse.classes[i].discussions.length; j++){
@@ -181,13 +170,13 @@ function addToDb(db, currCourse){
             //check for time difference
             if(dbCourse.classes[i].discussions[j].enrollments[
                   dbCourse.classes[i].discussions[j].enrollments.length-1]
-                  .time + 300000 < currCourse.classes[i].discussions[j]
-                  .enrollments[currCourse.classes[i].discussions[j]
-                  .enrollments.length-1].time || 
+                  .time + resources.REFRESH_TIMEOUT < currCourse.classes[i]
+                  .discussions[j].enrollments[currCourse.classes[i]
+                  .discussions[j].enrollments.length-1].time || 
                   //check for different seat count
                   dbCourse.classes[i].discussions[j].enrollments[
                   dbCourse.classes[i].discussions[j].enrollments.length-1]
-                  .remaining != currCourse.classes[i].discussions[j]
+                  .remaining !== currCourse.classes[i].discussions[j]
                   .enrollments[currCourse.classes[i].discussions[j]
                   .enrollments.length-1].remaining)
               dbCourse.classes[i].discussions[j].enrollments.push(
@@ -202,20 +191,22 @@ function addToDb(db, currCourse){
           }
         }
         if(i < currCourse.classes.length){
-          console.log(currCourse.classes.slice(i));
           dbCourse.classes = [
                   ...dbCourse.classes, 
                   ...currCourse.classes.slice(i)
           ];
         }
-        dbo.collection("classes").replaceOne(query, dbCourse);
+        object['Item'] = dbCourse;
+        
       }
-      else{
-        dbo.collection("classes").insertOne(currCourse);
-        dbCourse = currCourse;
-      }
-      console.log('success');
-    }).catch( err => console.log(`${query} with error ${err}`));
+      else
+        object.Item = currCourse;
+
+      docClient.put(object, (err, data) => { 
+        if(err) throw err; 
+        else console.log('success');
+      });
+    });
 }
 
 // helper function to extract data from html string and compress in object form
@@ -229,8 +220,7 @@ function extractDataFromHtml(courseName, htmlString){
         console.log(item.childNodes[7].toString().indexOf("Lecture"));
         console.log();
   });
-  console.log(selected[selected.length - 3].childNodes.forEach(item => console.log(item)));
-
+  console.log(selected[0].childNodes.forEach(item => console.log(item)));
   //finding whether discussion or lecture 
   console.log(selected[0].childNodes[7].toString().indexOf("Lecture"));
   console.log(); 
@@ -263,18 +253,13 @@ function extractDataFromHtml(courseName, htmlString){
   //console.log();
 
   var course = { name: courseName, term: "Fall 2019", classes: []};
-  course._id = course.name + ' ' + course.term;
 
   //selected[0].childNodes.forEach(item => console.log(item));
 
   /* does not work for classes with only lecture, needs to be reworked. 
    * test cases can include CENG 100, WCWP 100. */
 
-  debugger;
   selected.forEach(row => {
-      //cancelled classes
-      if(row.childNodes[11].childNodes[0].rawText == 'Cancelled')
-        return;
       //lecture row
       if(row.childNodes[7].toString().indexOf("Lecture") != -1){
         var lecture = { 
@@ -353,9 +338,9 @@ function extractDataFromHtml(courseName, htmlString){
 
 function getClassData(){
   console.log(resources.blacklist);
-  let postRequest = resources.postRequest;
+  var postRequest = resources.postRequest;
   for(const key in resources.classList){
-    for(const r of resources.classList[key]){
+    for(const r in resources.classList[key]){
       if(resources.blacklist.includes(key+" "+r))
         continue;
       postRequest.courses = key + " " + r; 
@@ -364,17 +349,13 @@ function getClassData(){
         postRequest.courses += "-A";
       axios.post(url, qs.stringify(postRequest), header)
       .then(response => {
-        connectAndAdd(extractDataFromHtml(key + " " + r, response.data));
-        console.log(`${key} ${r} succeeded`);
+        addToDb(extractDataFromHtml(key + " " + r, response.data));
+        console.log(key + " " + r + ' succeeded'); 
+        //console.log(extractDataFromHtml(key + " " + r, response.data)); 
       }).catch(err => { 
-        console.log( `${key} ${r} failed \n ${err}` );
+        console.log( key + " " + r + ' failed \n' + err); 
         blacklist.push(key+" "+r);
       });
     }
   }
 }
-
-//add the router
-//const port = Math.floor(Math.random() * Math.floor(10000))+1000;
-const port = process.env.PORT || 5000;
-app.listen( port, () => console.log('listening on port ' + port));
