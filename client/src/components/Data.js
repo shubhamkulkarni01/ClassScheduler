@@ -289,7 +289,19 @@ function PrevClass(props){
 
   //default to second pass for reference pt.
   var arbitraryDate = props.termStart[1];
+  console.log(props.termStart);
+  console.log(lastFillTime);
   var flag = 1;
+
+  const days = ((new Date(lastFillTime) 
+                - new Date(arbitraryDate))/86400000).toFixed(0) + " days and ";
+  const hours = ((new Date(lastFillTime) - 
+                  new Date(arbitraryDate))%86400000 /86400000*24)
+                .toFixed(0) + " hours since "; 
+  const passType = (flag === 0) ? "first pass" : "second pass";
+
+  const elapsedDateString = days + hours + passType;
+  const rawDateString = new Date(lastFillTime).toString().substring(4, 21);
 
   //if the filltime is before second pass, use firstpass as the reference pt.
   if(lastFillTime < arbitraryDate){
@@ -304,12 +316,7 @@ function PrevClass(props){
       <td className="prev-class-table">
         {(lastFillTime === 0) ? <div> No data found </div> :
         (lastFillTime === -1) ? <div> Class still has open seats </div> : 
-        (props.elapsedTime) ? ((new Date(lastFillTime) - 
-                  new Date(arbitraryDate))/86400000).toFixed(0) + " days and " + 
-                  ((new Date(lastFillTime) - new Date(arbitraryDate))%86400000
-                  /86400000*24).toFixed(0) + " hours since " + 
-                  (flag === 0) ? "first pass" : "second pass": 
-        new Date(lastFillTime).toString().substring(4, 21)}
+        (props.elapsedTime) ? elapsedDateString : rawDateString }
       </td>
     </tr>
   );

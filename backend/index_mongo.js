@@ -61,10 +61,10 @@ app.get('/api/class/:className', function(req, res) {
       postRequest.courses += "-A";
 
     //set postrequest selectedterm field dynamically
-    postRequest.selectedTerm = 
+    /*postRequest.selectedTerm = 
                   resources.termDefinitions[resources.currTermIndex].prefix +
                   resources.currYear;
-
+*/
     connectAndFind(req.params.className, res);
     console.log("returning database object");
     console.log(new Date().getTime() - res.timeOfArrival);
@@ -79,6 +79,7 @@ app.get('/api/class/:className', function(req, res) {
         console.log(new Date().getTime() - res.timeOfArrival);
         var currCourse = extractDataFromHtml(req.params.className, 
                                              response.data, res); 
+        console.log(currCourse);
         console.log("processed data");
         console.log(new Date().getTime() - res.timeOfArrival);
         // add the current course info to database
@@ -89,8 +90,8 @@ app.get('/api/class/:className', function(req, res) {
         //cache the current course info for quick access for the /api/cache
         //since we do not deliver the whole item to the user.
         cache[currCourse.name] = currCourse;
-        /* console.log("cached course data");
-        console.log(cache); */
+        console.log("cached course data");
+        console.log(cache);
     })
     .catch(err => { console.log("axios request failed"); console.log(err) });
 
@@ -105,6 +106,12 @@ app.get('/api/cache/:className', function(req, res){
       res.json(cache[req.params.className]);    
     else
       res.status(404).send('cache not found, try again later');
+});
+
+app.get('/api/updateAll', function(req, res){
+    console.log("GET request arrived: /api/updateAll");
+    getClassData();
+    res.send('updating all classes, hold tight');
 });
 
 app.use(express.static(path.join(__dirname, 'build')));
@@ -181,7 +188,8 @@ function addToDb(db, currCourse){
             //check for time difference
             if(dbCourse.classes[i].discussions[j].enrollments[
                   dbCourse.classes[i].discussions[j].enrollments.length-1]
-                  .time + 300000 < currCourse.classes[i].discussions[j]
+                  .time + resources.REFRESH_TIMEOUT < 
+                  currCourse.classes[i].discussions[j]
                   .enrollments[currCourse.classes[i].discussions[j]
                   .enrollments.length-1].time || 
                   //check for different seat count
@@ -262,7 +270,7 @@ function extractDataFromHtml(courseName, htmlString){
   //console.log();
   //console.log();
 
-  var course = { name: courseName, term: "Fall 2019", classes: []};
+  var course = { name: courseName, term: "Winter 2020", classes: []};
   course._id = course.name + ' ' + course.term;
 
   //selected[0].childNodes.forEach(item => console.log(item));

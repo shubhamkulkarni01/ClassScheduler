@@ -5,7 +5,7 @@ url: "https://act.ucsd.edu/scheduleOfClasses/scheduleOfClassesStudentResult.htm"
 header: { headers: { "Content-Type": "application/x-www-form-urlencoded" }}, 
 
 postRequest: { 
-  selectedTerm: 'FA19',
+  selectedTerm: 'WI20',
      xsoc_term: '',
      loggedIn: 'false',
      tabNum: 'tabs-crs',
@@ -88,10 +88,10 @@ termDefinitions: [
   {term: 'Spring 20', prefix: 'SP'}
 ],
 
-currTermIndex: 0,
-currYear: '19',
-currTerm: 'Fall 2019', 
-currTermPrefix: 'FA19',
+currTermIndex: 1,
+currYear: '20',
+currTerm: 'Winter 2020', 
+currTermPrefix: 'WI20',
 
 REFRESH_TIMEOUT: 900000
 }

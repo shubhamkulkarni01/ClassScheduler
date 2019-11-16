@@ -42,6 +42,7 @@ class App extends React.Component {
     axios.get(staticUrl)
       .then( result => {
         this.setState({staticData: result.data});
+        console.log(result.data);
       }).catch( e => {
         console.log(`retrying in ${milliseconds} milliseconds`);
         setTimeout(
