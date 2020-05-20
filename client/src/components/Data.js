@@ -289,9 +289,11 @@ function PrevClass(props){
 
   //default to second pass for reference pt.
   var arbitraryDate = props.termStart[1];
-  console.log(props.termStart);
-  console.log(lastFillTime);
   var flag = 1;
+  if(lastFillTime < arbitraryDate){
+    arbitraryDate = props.termStart[0];
+    flag = 0;
+  }
 
   const days = ((new Date(lastFillTime) 
                 - new Date(arbitraryDate))/86400000).toFixed(0) + " days and ";

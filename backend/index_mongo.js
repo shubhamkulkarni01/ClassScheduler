@@ -61,10 +61,10 @@ app.get('/api/class/:className', function(req, res) {
       postRequest.courses += "-A";
 
     //set postrequest selectedterm field dynamically
-    /*postRequest.selectedTerm = 
+    postRequest.selectedTerm = 
                   resources.termDefinitions[resources.currTermIndex].prefix +
                   resources.currYear;
-*/
+
     connectAndFind(req.params.className, res);
     console.log("returning database object");
     console.log(new Date().getTime() - res.timeOfArrival);
@@ -77,9 +77,11 @@ app.get('/api/class/:className', function(req, res) {
     .then(response => { 
         console.log("axios request succeeded");
         console.log(new Date().getTime() - res.timeOfArrival);
-        var currCourse = extractDataFromHtml(req.params.className, 
+        var currCourse = extractDataFromHtml(req.params.className, currTerm, 
                                              response.data, res); 
+        currCourse.term = currTerm;
         console.log(currCourse);
+        console.log(currCourse.classes);
         console.log("processed data");
         console.log(new Date().getTime() - res.timeOfArrival);
         // add the current course info to database
@@ -227,7 +229,7 @@ function addToDb(db, currCourse){
 }
 
 // helper function to extract data from html string and compress in object form
-function extractDataFromHtml(courseName, htmlString){
+function extractDataFromHtml(courseName, currTerm, htmlString){
   //parse html string
   var html = parser.parse(htmlString);
   var selected = html.querySelectorAll(".sectxt");
@@ -270,10 +272,8 @@ function extractDataFromHtml(courseName, htmlString){
   //console.log();
   //console.log();
 
-  var course = { name: courseName, term: "Winter 2020", classes: []};
+  var course = { name: courseName, term: currTerm, classes: []};
   course._id = course.name + ' ' + course.term;
-
-  //selected[0].childNodes.forEach(item => console.log(item));
 
   /* does not work for classes with only lecture, needs to be reworked. 
    * test cases can include CENG 100, WCWP 100. */
@@ -301,6 +301,7 @@ function extractDataFromHtml(courseName, htmlString){
       //row with seat data
       if(row.childNodes[21] !== undefined && 
           row.childNodes[21].childNodes[0].rawText.trim() !== "&nbsp;"){
+
         //get the remaining seats 
         var rem = row.childNodes[21].childNodes[0].rawText;
 
@@ -372,7 +373,9 @@ function getClassData(){
         postRequest.courses += "-A";
       axios.post(url, qs.stringify(postRequest), header)
       .then(response => {
-        connectAndAdd(extractDataFromHtml(key + " " + r, response.data));
+        connectAndAdd(extractDataFromHtml(key + " " + r, 
+                                          currTerm, 
+                                          response.data));
         console.log(`${key} ${r} succeeded`);
       }).catch(err => { 
         console.log( `${key} ${r} failed \n ${err}` );
@@ -384,5 +387,5 @@ function getClassData(){
 
 //add the router
 //const port = Math.floor(Math.random() * Math.floor(10000))+1000;
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 12345;
 app.listen( port, () => console.log('listening on port ' + port));

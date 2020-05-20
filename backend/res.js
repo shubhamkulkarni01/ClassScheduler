@@ -1,11 +1,12 @@
 module.exports = {
 
 url: "https://act.ucsd.edu/scheduleOfClasses/scheduleOfClassesStudentResult.htm",
+api: "https://api.ucsd.edu:8243/get_schedule_of_classes/v1",
 
 header: { headers: { "Content-Type": "application/x-www-form-urlencoded" }}, 
 
 postRequest: { 
-  selectedTerm: 'WI20',
+  selectedTerm: 'FA20',
      xsoc_term: '',
      loggedIn: 'false',
      tabNum: 'tabs-crs',
@@ -88,10 +89,10 @@ termDefinitions: [
   {term: 'Spring 20', prefix: 'SP'}
 ],
 
-currTermIndex: 1,
+currTermIndex: 0,
 currYear: '20',
-currTerm: 'Winter 2020', 
-currTermPrefix: 'WI20',
+currTerm: 'Fall 2020', 
+currTermPrefix: 'FA20',
 
 REFRESH_TIMEOUT: 900000
 }

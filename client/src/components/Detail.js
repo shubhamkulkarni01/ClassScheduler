@@ -34,10 +34,8 @@ class Detail extends React.Component {
     if(!this.props.render) 
       return <div className="blankDiv" />;
 
-    /*
     const initialDate = this.props.staticData.termStartDict[this.props.term][0]
-    */
-    const initialDate = 1568235032356;
+    //const initialDate = 1568235032356;
     const millis = initialDate + this.getScaledDate() + this.getScaledTime();
 
     console.log(millis);
@@ -52,7 +50,7 @@ class Detail extends React.Component {
     return (
       <div className="blankDiv"> 
         <div className="detail-slider-wrapper">
-          <input type="range" min="0" max="14" className="slider" 
+          <input type="range" min="0" max="21" className="slider" 
                  onChange = {this.handleDate} value = {this.state.date} />
           {time.substring(0, 11)}
         </div>
